@@ -119,3 +119,48 @@ iot_smoke_detection_data_pipeline/
 #### Containerization & DevOps
 - **Docker** – Isolated service containers  
 - **Docker Compose** – Service orchestration (Kafka, Airflow, Prometheus, etc.)
+
+##  Setup
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <project-folder-name>
+   ```
+
+2. Rename .env.example as .env and edit according to your actual case
+    ```bash
+    cp .env.example .env
+    ```
+
+3. Build and start all services using Docker Compose
+    ```bash
+   docker-compose -f docker/docker-compose.yml up --build
+   ```
+    This command will:
+
+    Build the Flask app image
+
+    Start:
+
+    - Flask API server
+    - Apache Kafka and Zookeeper
+    - Airflow scheduler and web UI
+    - Prometheus 
+    - Grafana 
+
+4. (Optional) Run CLI commands inside containers
+    ```bash
+    # You can run Kafka producer/consumer, Airflow CLI, or training scripts inside containers:
+    # Replace smoke_flask_app with relevant container name or container id
+    docker exec -it smoke_flask_app bash
+
+
+    ```
+5. (Optional) Stop and remove containers
+    ```bash
+    docker-compose down
+
+    # Use --volumes if you want to delete persistent data (Grafana dashboards, etc.):
+    docker-compose down --volumes
+    ```
