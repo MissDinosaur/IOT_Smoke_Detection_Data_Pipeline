@@ -122,26 +122,58 @@ iot_smoke_detection_data_pipeline/
 
 ##  Setup
 
-1. Clone the repository:
+### 1. Set Up the Dataset
+
+This project uses the [Smoke Detection Dataset](https://www.kaggle.com/datasets/deepcontractor/smoke-detection-dataset) from Kaggle.
+
+> **Note:** The dataset file is not included in the repository for size and license considerations.
+
+#### How to Set Up the Dataset
+
+1. Visit the [Kaggle dataset page](https://www.kaggle.com/datasets/deepcontractor/smoke-detection-dataset)
+2. Download the CSV file (e.g., `smoke_detection_iot.csv`)
+3. Place it inside the `data/` directory in the project root.
+
+
+If you're using Docker, ensure this folder is mounted in `docker-compose.yml`.
+
+For more detailed instructions, see [`data/README.md`](data/README.md).
+
+
+1. **Clone the repository**
    ```bash
    git clone <repository-url>
    cd <project-folder-name>
    ```
 
-2. Rename .env.example as .env and edit according to your actual case
+2. **Generate and edit .env file**
+
+    Rename .env.example as .env in the root directory and edit it according to your actual case.
     ```bash
     cp .env.example .env
     ```
+3. **Set up the dataset**
+    
+    This project uses the [Smoke Detection Dataset](https://www.kaggle.com/datasets/deepcontractor/smoke-detection-dataset) from Kaggle.
 
-3. Build and start all services using Docker Compose
+    How to set up the dataset
+    1. Visit the [Kaggle dataset page](https://www.kaggle.com/datasets/deepcontractor/smoke-detection-dataset)
+    2. Download the CSV file (e.g., `smoke_detection_iot.csv`)
+    3. Place it inside the `data/` directory in the project root.
+
+    If you're using Docker, ensure this folder is mounted in `docker-compose.yml`.
+
+    For more detailed instructions, see [`data/README.md`](data/README.md).
+
+4. **Build and start all services using Docker Compose**
     ```bash
    docker-compose -f docker/docker-compose.yml up --build
    ```
     This command will:
 
-    Build the Flask app image
+    Build the Flask app image, 
 
-    Start:
+    And start:
 
     - Flask API server
     - Apache Kafka and Zookeeper
@@ -149,7 +181,7 @@ iot_smoke_detection_data_pipeline/
     - Prometheus 
     - Grafana 
 
-4. (Optional) Run CLI commands inside containers
+5. (Optional) **Run CLI commands inside containers**
     ```bash
     # You can run Kafka producer/consumer, Airflow CLI, or training scripts inside containers:
     # Replace smoke_flask_app with relevant container name or container id
@@ -157,7 +189,7 @@ iot_smoke_detection_data_pipeline/
 
 
     ```
-5. (Optional) Stop and remove containers
+5. (Optional) **Stop and remove containers**
     ```bash
     docker-compose down
 
