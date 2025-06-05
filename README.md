@@ -80,7 +80,7 @@ iot_smoke_detection_data_pipeline/
 │
 ├── main.py                             # Script to start app
 ├── README.md                           # Project documentation and instructions
-├── project_config.yaml                 # Global/shared config
+├── .env.example                        # Global/shared environment config
 └── requirements.txt                    # Python dependency list
 
 ```
