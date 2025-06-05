@@ -24,18 +24,13 @@ iot_smoke_detection_data_pipeline/
 │   │    └── static/                         # CSS, JS, webcam script, glasses
 │   ├── utils/
 │   └── __init__.py                          # Flask initialization 
-|
-├── data_generation/                     # Simulate IoT smoke sensor data
-│   ├── simulate_stream_data.py              # Continuously push mock data to Kafka
-│   ├── generate_historical_data.py          # Generate historical CSV/Parquet data
-│   └── config/
-│       └── sensor_schema.yaml               # Schema definition for sensor data
 │
 ├── data_ingestion/                      # Ingest data from stream and batch sources
-│   ├── stream_ingestion/
-│   │   ├── kafka_producer.py                # Send streaming data to Kafka
+│   ├── stream/
 │   │   ├── kafka_consumer.py                # Consume real-time sensor data
-│   └── batch_ingestion/
+│   │   ├── kafka_producer.py                # Send streaming data to Kafka
+│   │   ├── simulate_stream_data.py          # Continuously generate mock sensor data
+│   └── batch/
 │       ├── batch_loader.py                  # Load historical sensor data from file
 │       └── file_monitor.py                  # Monitor folder for new batch files
 │
