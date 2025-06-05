@@ -115,26 +115,8 @@ iot_smoke_detection_data_pipeline/
 - **Docker** – Isolated service containers  
 - **Docker Compose** – Service orchestration (Kafka, Airflow, Prometheus, etc.)
 
+
 ##  Setup
-
-### 1. Set Up the Dataset
-
-This project uses the [Smoke Detection Dataset](https://www.kaggle.com/datasets/deepcontractor/smoke-detection-dataset) from Kaggle.
-
-> **Note:** The dataset file is not included in the repository for size and license considerations.
-
-#### How to Set Up the Dataset
-
-1. Visit the [Kaggle dataset page](https://www.kaggle.com/datasets/deepcontractor/smoke-detection-dataset)
-2. Download the CSV file (e.g., `smoke_detection_iot.csv`)
-3. Place it inside the `data/` directory in the project root.
-
-
-If you're using Docker, ensure this folder is mounted in `docker-compose.yml`.
-
-For more detailed instructions, see [`data/README.md`](data/README.md).
-
-
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
@@ -155,8 +137,6 @@ For more detailed instructions, see [`data/README.md`](data/README.md).
     1. Visit the [Kaggle dataset page](https://www.kaggle.com/datasets/deepcontractor/smoke-detection-dataset)
     2. Download the CSV file (e.g., `smoke_detection_iot.csv`)
     3. Place it inside the `data/` directory in the project root.
-
-    If you're using Docker, ensure this folder is mounted in `docker-compose.yml`.
 
     For more detailed instructions, see [`data/README.md`](data/README.md).
 
