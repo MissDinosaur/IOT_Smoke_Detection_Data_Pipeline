@@ -16,13 +16,16 @@ def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPI
     
         print("Start generating synthetic data...")
         schema = utils.load_kaggle_data_schema()
+        count = 0
         while True:
             row: dict = sim.generate_random_row(schema, missing_rate)  # existing 5% missing by default
-            # print(row)
+            count +=1
+            print(f"Generated {count}th row data: {row}")
 
             message = json.dumps(row).encode('utf-8')
             producer.send(topic=topic, value=message)
             producer.flush()  # make sure message has been sent
+            print("{count}th Row data sent")
             
             time.sleep(interval) # produce a new data every specific seconds
     except Exception as e:

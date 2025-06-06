@@ -48,8 +48,7 @@ iot_smoke_detection_data_pipeline/
 │   │   │   ├── compute_batch_metrics.py     # Batch-level data quality and KPI metrics
 │   │   │   └── feature_engineering.py       # Feature processing for ML
 │   │   └── airflow.cfg                      # Local Airflow configuration (optional)
-│   └── utils/
-│       └── cleaning_utils.py                # Shared data cleaning helper functions
+│   └── utils.py                         # Shared data processing helper functions
 │
 ├── ml_model/
 │   ├── training/
