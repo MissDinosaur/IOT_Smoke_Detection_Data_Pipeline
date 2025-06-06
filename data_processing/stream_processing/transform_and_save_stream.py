@@ -10,6 +10,7 @@ from data_ingestion import utils
 columns = utils.get_kaggle_data_headers()
 
 def save_historical_data(row, output_csv_file:str):
+    """Save data into csv file row by row"""
     # If output_csv file doesn't exist or it's empty then it is the first time to write sth into this file
     first_time_flg = not os.path.exists(output_csv_file) or os.path.getsize(output_csv_file) == 0
     with open(output_csv_file, 'a', encoding='utf-8') as f:
@@ -19,13 +20,10 @@ def save_historical_data(row, output_csv_file:str):
         f.write(','.join(row) + '\n')
         f.flush()  # flush to disk immediately
 
-def consume_to_csv(topic, output_csv, group_id):
+def consume_streaming_data(topic, output_csv, group_id):
     """
-    Consume messages from Kafka topic and append to CSV file.
-    Args:
-        topic (str): Kafka topic to consume from
-        output_csv (str): Path to output CSV file
-        group_id (str): Kafka consumer group ID
+    Only Consume messages from Kafka topic and append to CSV file.
+    You can add more data processing operations here.
     """
 
     # Initialize Kafka consumer
@@ -52,8 +50,9 @@ def consume_to_csv(topic, output_csv, group_id):
 
         save_historical_data(row, output_csv)
         #print(f"Appended row: {row}")
+        # You can add more data processing operations here 
 
 if __name__ == '__main__':
     historical_data_file_path = build_relative_path(DATA_DIR, HISTORICAL_DATA_FILE)
     print(f"historical_data_file_path: {historical_data_file_path}")
-    consume_to_csv(KAFKA_TOPIC_SMOKE, historical_data_file_path, group_id=GROUP_ID)
+    consume_streaming_data(KAFKA_TOPIC_SMOKE, historical_data_file_path, group_id=GROUP_ID)

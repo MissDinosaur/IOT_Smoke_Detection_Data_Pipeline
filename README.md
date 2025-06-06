@@ -31,16 +31,15 @@ iot_smoke_detection_data_pipeline/
 |
 ├── data_ingestion/                      # Ingest data from stream and batch sources
 │   ├── stream/
-│   │   ├── kafka_consumer.py                # Consume real-time sensor data
 │   │   ├── kafka_producer.py                # Send streaming data to Kafka
 │   │   └── simulate_stream_data.py          # Continuously generate mock sensor data
 │   └── batch/
 │   │   └── batch_loader.py                  # Load historical sensor data from file
 │   └── utils.py
 │
-├── processing/
+├── data_processing/
 │   ├── stream_processing/
-│   │   ├── transform_stream.py              # Real-time transformation and feature extraction
+│   │   ├── transform_and_save_stream.py.py  # Real-time transformation and feature extraction and saving
 │   │   ├── detect_anomalies.py              # Smoke anomaly detection logic
 │   │   └── metrics_streaming.py             # Compute live stream analytics
 │   ├── batch_processing/
