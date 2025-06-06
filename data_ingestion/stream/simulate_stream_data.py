@@ -1,12 +1,10 @@
 import numpy as np
 from datetime import datetime
 import random
-from data_ingestion import utils
 
 
-def generate_random_row(missing_rate: float =0.05) -> dict:
+def generate_random_row(schema: dict, missing_rate: float =0.05) -> dict:
     """Generate synthetic data according to the schema of the original Kaggle smoke data"""
-    schema = utils.load_schema()
     row = {}
     for col, info in schema.items():
         if random.random() < missing_rate:

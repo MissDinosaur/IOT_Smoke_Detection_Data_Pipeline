@@ -1,33 +1,33 @@
 import time
-import os
 from kafka import KafkaProducer
 import json
-import simulate_stream_data as sim
+import config.env_config as cfg
 from data_ingestion import utils
+import simulate_stream_data as sim
 
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-def produce_and_send_data(missing_rate, interval=2.0, kafka_topic=None):
-    producer = None
-    if kafka_topic:
+def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPIC_SMOKE):
+    try:
         producer = KafkaProducer(
-            bootstrap_servers=[utils.KAFKA_BOOTSTRAP_SERVERS],
+            bootstrap_servers=[cfg.KAFKA_BOOTSTRAP_SERVERS],
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
-        print(f"Kafka producer initialized. Topic: {kafka_topic}")
+        print(f"Kafka producer initialized. Topic: {topic}")
     
-    print("Start generating synthetic data...")
-    while True:
-        row: dict = sim.generate_random_row(missing_rate=missing_rate)  # existing 5% missing by default
-        # print(row)
+        print("Start generating synthetic data...")
+        schema = utils.load_schema()
+        while True:
+            row: dict = sim.generate_random_row(schema, missing_rate)  # existing 5% missing by default
+            # print(row)
 
-        message = json.dumps(row).encode('utf-8')
-        producer.send(topic=kafka_topic, value=message)
-
-        time.sleep(interval) # produce a new data every specific seconds
+            message = json.dumps(row).encode('utf-8')
+            producer.send(topic=topic, value=message)
+            producer.flush()  # make sure message has been sent
+            
+            time.sleep(interval) # produce a new data every specific seconds
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
-    historical_data_file = os.path.join(ROOT_DIR, "data", "historical_smoke_data.csv")
-    kafka_topic = "smoke_sensor_data"
-    produce_and_send_data(missing_rate=0.05, kafka_topic=kafka_topic)
+    kafka_topic = cfg.KAFKA_TOPIC_SMOKE
+    kafka_produce_and_send_data(missing_rate=0.05, interval=2.0, topic=kafka_topic)

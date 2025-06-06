@@ -1,24 +1,20 @@
 import csv
-from dotenv import load_dotenv
-import os
 import pandas as pd
 import numpy as np
+from app.utils.path_utils import DATA_DIR, build_relative_path
+from config.constants import KAGGLE_DATA_FILE
 
 
-load_dotenv() # Load variables from .env
-kaggle_data_file = os.getenv("DATA_FILE_NAME")
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-kaggle_data_file_path = os.path.join(ROOT_DIR, "data", kaggle_data_file)
+KAGGLE_DATA_FILE_PATH = build_relative_path(DATA_DIR, KAGGLE_DATA_FILE)
+print(f"KAGGLE_DATA_FILE_PATH: {KAGGLE_DATA_FILE_PATH}")
 
-KAFKA_BOOTSTRAP_SERVERS = "kafka:9092"
-
-def get_csv_headers(filepath: str =kaggle_data_file_path) -> list[str]: 
-    with open(filepath, 'r', encoding='utf-8') as f:
+def get_csv_headers(file_path: str =KAGGLE_DATA_FILE_PATH) -> list[str]:
+    with open(file_path, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
         headers = next(reader)  # Read the first line
     return headers
 
-def load_schema(referred_csv_path: str =kaggle_data_file_path) -> dict:
+def load_schema(referred_csv_path: str =KAGGLE_DATA_FILE_PATH) -> dict:
     """Derive the data description of the csv data file"""
     df = pd.read_csv(referred_csv_path)
     schema = {}

@@ -1,12 +1,11 @@
 import os
 import json
 from kafka import KafkaConsumer
+from app.utils.path_utils import DATA_DIR, build_relative_path
+from config.constants import NULL_MARKER, GROUP_ID, HISTORICAL_DATA_FILE  
+from config.env_config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC_SMOKE
 from data_ingestion import utils
 
-
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-GROUP_ID='consumer_1'
-NULL_MARKER = "<NULL>"
 
 columns = utils.get_csv_headers()
 
@@ -32,7 +31,7 @@ def consume_to_csv(topic, output_csv, group_id):
     # Initialize Kafka consumer
     consumer = KafkaConsumer(
         topic,
-        bootstrap_servers=utils.KAFKA_BOOTSTRAP_SERVERS,
+        bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
         auto_offset_reset='earliest',  # start from beginning if no offset
         enable_auto_commit=True,
         group_id=group_id,
@@ -55,7 +54,6 @@ def consume_to_csv(topic, output_csv, group_id):
         #print(f"Appended row: {row}")
 
 if __name__ == '__main__':
-    kafka_topic = "smoke_sensor_data"
-    csv_file = os.path.join(ROOT_DIR, "data", "historical_smoke_data.csv")
-
-    consume_to_csv(kafka_topic, csv_file, group_id=GROUP_ID)
+    historical_data_file_path = build_relative_path(DATA_DIR, HISTORICAL_DATA_FILE)
+    print(f"historical_data_file_path: {historical_data_file_path}")
+    consume_to_csv(KAFKA_TOPIC_SMOKE, historical_data_file_path, group_id=GROUP_ID)

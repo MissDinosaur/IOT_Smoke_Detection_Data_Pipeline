@@ -16,15 +16,19 @@ The system integrates key components of a modern data pipeline:
 iot_smoke_detection_data_pipeline/
 │
 ├── app/                                 # Frontend Dashboard logic
-│   ├── api                                # Flask backend 
-│   │   ├── metrics_api.py                   # API to serve monitoring metrics
-│   │   └── prediction_api.py                # API to handle user input and return prediction  
-│   ├── ui                                 # Flask frontend 
-│   │    ├── templates/                      # HTML upload page or try-on viewer
-│   │    └── static/                         # CSS, JS, webcam script, glasses
-│   ├── utils/
+│   ├── api                                  # Flask backend 
+│   │   ├── metrics_api.py                     # API to serve monitoring metrics
+│   │   └── prediction_api.py                  # API to handle user input and return prediction  
+│   ├── ui                                   # Flask frontend 
+│   │    ├── templates/                        # HTML upload page or try-on viewer
+│   │    └── static/                           # CSS, JS, webcam script, glasses
+│   ├── utils/                               # Include path control tool
 │   └── __init__.py                          # Flask initialization 
 │
+├── config/                              # Ingest data from stream and batch sources
+│   ├── constants.py                         # Contains global constant variables
+│   ├── env_config.py                        # Fetch the environment variables
+|
 ├── data_ingestion/                      # Ingest data from stream and batch sources
 │   ├── stream/
 │   │   ├── kafka_consumer.py                # Consume real-time sensor data
