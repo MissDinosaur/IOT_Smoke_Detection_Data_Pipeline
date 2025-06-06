@@ -15,7 +15,7 @@ def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPI
         print(f"Kafka producer initialized. Topic: {topic}")
     
         print("Start generating synthetic data...")
-        schema = utils.load_schema()
+        schema = utils.load_kaggle_data_schema()
         while True:
             row: dict = sim.generate_random_row(schema, missing_rate)  # existing 5% missing by default
             # print(row)

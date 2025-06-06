@@ -7,7 +7,7 @@ from config.env_config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC_SMOKE
 from data_ingestion import utils
 
 
-columns = utils.get_csv_headers()
+columns = utils.get_kaggle_data_headers()
 
 def save_historical_data(row, output_csv_file:str):
     # If output_csv file doesn't exist or it's empty then it is the first time to write sth into this file

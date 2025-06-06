@@ -33,10 +33,10 @@ iot_smoke_detection_data_pipeline/
 │   ├── stream/
 │   │   ├── kafka_consumer.py                # Consume real-time sensor data
 │   │   ├── kafka_producer.py                # Send streaming data to Kafka
-│   │   ├── simulate_stream_data.py          # Continuously generate mock sensor data
+│   │   └── simulate_stream_data.py          # Continuously generate mock sensor data
 │   └── batch/
-│       ├── batch_loader.py                  # Load historical sensor data from file
-│       └── file_monitor.py                  # Monitor folder for new batch files
+│   │   └── batch_loader.py                  # Load historical sensor data from file
+│   └── utils.py
 │
 ├── processing/
 │   ├── stream_processing/
@@ -44,13 +44,10 @@ iot_smoke_detection_data_pipeline/
 │   │   ├── detect_anomalies.py              # Smoke anomaly detection logic
 │   │   └── metrics_streaming.py             # Compute live stream analytics
 │   ├── batch_processing/
-│   │   ├── dags/
-│   │   │   ├── smoke_detection_dag.py       # Airflow DAG for batch pipeline
-│   │   │   └── sensors.py                   # Custom sensors for Airflow DAG
+│   │   ├── smoke_detection_dag.py        # Airflow DAG for batch pipeline
 │   │   ├── tasks/
-│   │   │   ├── feature_engineering.py       # Feature processing for ML
-│   │   │   ├── train_trigger.py             # Optionally trigger training
-│   │   │   └── compute_batch_metrics.py     # Batch-level data quality and KPI metrics
+│   │   │   ├── compute_batch_metrics.py     # Batch-level data quality and KPI metrics
+│   │   │   └── feature_engineering.py       # Feature processing for ML
 │   │   └── airflow.cfg                      # Local Airflow configuration (optional)
 │   └── utils/
 │       └── cleaning_utils.py                # Shared data cleaning helper functions

@@ -1,10 +1,12 @@
 import pandas as pd
 from app.utils.path_utils import DATA_DIR, build_relative_path
-from config.constants import KAGGLE_DATA_FILE
+from config.constants import KAGGLE_DATA_FILE, TARGET_COLUMN
 
 
-csv_file_path = build_relative_path(DATA_DIR, KAGGLE_DATA_FILE)
+kaggle_file_path = build_relative_path(DATA_DIR, KAGGLE_DATA_FILE)
 
-def load_batch_data(csv_file_path: str):
-    return pd.read_csv(csv_file_path, index_col=0)
+def load_csv_data(file_path: str =kaggle_file_path):
+    df = pd.read_csv(file_path, index_col=0)
+    df[TARGET_COLUMN] = pd.Categorical(df[TARGET_COLUMN].astype(str))  # convert TARGET_COLUMN to categorical column
+    return df
 

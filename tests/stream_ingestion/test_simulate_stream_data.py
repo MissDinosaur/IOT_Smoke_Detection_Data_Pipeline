@@ -1,10 +1,10 @@
 import pytest
 import data_ingestion.stream.simulate_stream_data as sim
-from data_ingestion.utils import load_schema
+from data_ingestion.utils import load_kaggle_data_schema
 
 
 def test_generate_random_row():
-    schema = load_schema()
+    schema = load_kaggle_data_schema()
     row = sim.generate_random_row(schema=schema)
 
     assert isinstance(row, dict)
