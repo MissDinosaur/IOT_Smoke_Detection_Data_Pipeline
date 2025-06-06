@@ -15,7 +15,7 @@ The system integrates key components of a modern data pipeline:
 ```text
 iot_smoke_detection_data_pipeline/
 │
-├── app/                                 # Frontend Dashboard logic
+├── app/                                 # Web Application logic
 │   ├── api                                  # Flask backend 
 │   │   ├── metrics_api.py                     # API to serve monitoring metrics
 │   │   └── prediction_api.py                  # API to handle user input and return prediction  
@@ -25,7 +25,7 @@ iot_smoke_detection_data_pipeline/
 │   ├── utils/                               # Include path control tool
 │   └── __init__.py                          # Flask initialization 
 │
-├── config/                              # Ingest data from stream and batch sources
+├── config/                              # Configuration folder
 │   ├── constants.py                         # Contains global constant variables
 │   └── env_config.py                        # Fetch the environment variables
 |
@@ -74,12 +74,11 @@ iot_smoke_detection_data_pipeline/
 │   ├── Dockerfile.pipeline                  # For data pipeline services
 │   └── Dockerfile.frontend                  # For Flask dashboard service
 │
-├── tests/                                   # Unit and integration tests
+├── tests/                              # Unit and integration tests
 │
-├── main.py                             # Script to start app
+├── main.py                             # Script to start application
 ├── README.md                           # Project documentation and instructions
-├── .env.example                        # Global/shared environment config
-└── requirements.txt                    # Python dependency list
+└── .env.example                        # Global/shared environment config
 
 ```
 
