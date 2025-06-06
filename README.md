@@ -27,7 +27,7 @@ iot_smoke_detection_data_pipeline/
 │
 ├── config/                              # Ingest data from stream and batch sources
 │   ├── constants.py                         # Contains global constant variables
-│   ├── env_config.py                        # Fetch the environment variables
+│   └── env_config.py                        # Fetch the environment variables
 |
 ├── data_ingestion/                      # Ingest data from stream and batch sources
 │   ├── stream/
@@ -78,9 +78,6 @@ iot_smoke_detection_data_pipeline/
 │   └── Dockerfile.frontend                  # For Flask dashboard service
 │
 ├── tests/                                   # Unit and integration tests
-│   ├── test_kafka_ingestion.py
-│   ├── test_model_prediction.py
-│   └── test_flask_api.py
 │
 ├── main.py                             # Script to start app
 ├── README.md                           # Project documentation and instructions
