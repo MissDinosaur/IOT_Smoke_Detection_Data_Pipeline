@@ -15,68 +15,68 @@ The system integrates key components of a modern data pipeline:
 ```text
 iot_smoke_detection_data_pipeline/
 │
-├── app/                                 # Web Application logic
-│   ├── api                                  # Flask backend 
-│   │   ├── metrics_api.py                     # API to serve monitoring metrics
-│   │   └── prediction_api.py                  # API to handle user input and return prediction  
-│   ├── ui                                   # Flask frontend 
-│   │    ├── templates/                        # HTML upload page or try-on viewer
-│   │    └── static/                           # CSS, JS, webcam script, glasses
-│   ├── utils/                               # Include path control tool
-│   └── __init__.py                          # Flask initialization 
-│
-├── config/                              # Configuration folder
-│   ├── constants.py                         # Contains global constant variables
-│   └── env_config.py                        # Fetch the environment variables
-|
-├── data
-│   ├── smoke_detection_iot.csv
-│   └── historical_smoke_data.csv
-|
-├── data_ingestion/                      # Ingest data from stream and batch sources
-│   ├── stream/
-│   │   ├── kafka_producer.py                # Send streaming data to Kafka
-│   │   └── simulate_stream_data.py          # Continuously generate mock sensor data
-│   └── batch/
-│   │   └── batch_loader.py                  # Load historical sensor data from file
+├── app/                                    # Web Application logic
+│   ├── api                                     # Flask backend 
+│   │   ├── metrics_api.py                        # API to serve monitoring metrics
+│   │   └── prediction_api.py                     # API to handle user input and return prediction  
+│   ├── ui                                      # Flask frontend 
+│   │    ├── templates/                           # HTML upload page or try-on viewer
+│   │    └── static/                              # CSS, JS, webcam script, glasses
+│   ├── utils/                                  # Include path control tool
+│   └── __init__.py                             # Flask initialization 
+│   
+├── config/                                 # Configuration folder
+│   ├── constants.py                            # Contains global constant variables
+│   └── env_config.py                           # Fetch the environment variables
+|   
+├── data    
+│   ├── smoke_detection_iot.csv 
+│   └── historical_smoke_data.csv   
+|   
+├── data_ingestion/                         # Ingest data from stream and batch sources
+│   ├── stream/ 
+│   │   ├── kafka_producer.py                   # Send streaming data to Kafka
+│   │   └── simulate_stream_data.py             # Continuously generate mock sensor data
+│   └── batch/  
+│   │   └── batch_loader.py                     # Load historical sensor data from file
 │   └── utils.py
 │
 ├── data_processing/
 │   ├── stream_processing/
-│   │   ├── transform_and_save_stream.py.py  # Real-time transformation and feature extraction and saving
-│   │   ├── detect_anomalies.py              # Smoke anomaly detection logic
-│   │   └── metrics_streaming.py             # Compute live stream analytics
-│   ├── batch_processing/
-│   │   ├── dags/
-│   │   │   └── smoke_detection_dag.py       # Airflow DAG for batch pipeline
-│   │   ├── tasks/
-│   │   │   ├── compute_batch_metrics.py     # Batch-level data quality and KPI metrics
-│   │   │   └── feature_engineering.py       # Feature processing for ML
-│   └── utils.py                         # Shared data processing helper functions
+│   │   ├── transform_and_save_stream.py.py     # Real-time transformation and feature extraction and saving
+│   │   ├── detect_anomalies.py                 # Smoke anomaly detection logic
+│   │   └── metrics_streaming.py                # Compute live stream analytics
+│   ├── batch_processing/   
+│   │   ├── dags/   
+│   │   │   └── smoke_detection_dag.py          # Airflow DAG for batch pipeline
+│   │   ├── tasks/  
+│   │   │   ├── compute_batch_metrics.py        # Batch-level data quality and KPI metrics
+│   │   │   └── feature_engineering.py          # Feature processing for ML
+│   └── utils.py                            # Shared data processing helper functions
 │
 ├── ml_model/
 │   ├── training/
-│   │   ├── train_model.py                   # Train ML model for smoke detection
-│   │   └── evaluate_model.py                # Model evaluation logic
+│   │   ├── train_model.py                  # Train ML model for smoke detection
+│   │   └── evaluate_model.py               # Model evaluation logic
 │   ├── inference/
-│   │   ├── model_loader.py                  # Load trained model
-│   │   ├── predict.py                       # Run prediction from script
-│   │   └── predict_wrapper.py               # Prediction module used by API
+│   │   ├── model_loader.py                 # Load trained model
+│   │   ├── predict.py                      # Run prediction from script
+│   │   └── predict_wrapper.py              # Prediction module used by API
 │   └── models/
-│       └── smoke_model.pkl                  # Trained model file
+│       └── smoke_model.pkl                 # Trained model file
 │
-├── monitoring/                          # Monitor data & processing metrics
-│   ├── prometheus_exporter.py               # Expose metrics to Prometheus
-│   ├── log_metrics.py                       # Log data volume, latency, error rate, etc.
-│   └── dashboards/
-│       └── grafana_dashboard.json           # Grafana dashboard configuration
+├── monitoring/                             # Monitor data & processing metrics
+│   ├── prometheus_exporter.py                  # Expose metrics to Prometheus
+│   ├── log_metrics.py                          # Log data volume, latency, error rate, etc.
+│   └── dashboards/ 
+│       └── grafana_dashboard.json              # Grafana dashboard configuration
 │
-├── tests/                              # Unit and integration tests
-│
-├── docker-compose.yml                  # Includes Kafka, Airflow, Prometheus, Flask
-├── main.py                             # Script to start application
-├── README.md                           # Project documentation and instructions
-├── .env.example                        # Global/shared environment config
+├── tests/                                  # Unit and integration tests
+│   
+├── docker-compose.yml                      # Includes Kafka, Airflow, Prometheus, Flask
+├── main.py                                 # Script to start application
+├── README.md                               # Project documentation and instructions
+├── .env.example                            # Global/shared environment config
 └──requirements.txt
 
 ```

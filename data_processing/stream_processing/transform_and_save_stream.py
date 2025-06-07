@@ -4,7 +4,7 @@ from kafka import KafkaConsumer
 from app.utils.path_utils import DATA_DIR, build_relative_path
 from config.constants import NULL_MARKER, GROUP_ID, HISTORICAL_DATA_FILE  
 from config.env_config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC_SMOKE
-from data_ingestion import utils
+from data_processing import utils
 
 
 columns = utils.get_kaggle_data_headers()
