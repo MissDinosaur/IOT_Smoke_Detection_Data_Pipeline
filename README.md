@@ -29,6 +29,10 @@ iot_smoke_detection_data_pipeline/
 │   ├── constants.py                         # Contains global constant variables
 │   └── env_config.py                        # Fetch the environment variables
 |
+├── data
+│   ├── smoke_detection_iot.csv
+│   └── historical_smoke_data.csv
+|
 ├── data_ingestion/                      # Ingest data from stream and batch sources
 │   ├── stream/
 │   │   ├── kafka_producer.py                # Send streaming data to Kafka
@@ -67,16 +71,13 @@ iot_smoke_detection_data_pipeline/
 │   └── dashboards/
 │       └── grafana_dashboard.json           # Grafana dashboard configuration
 │
-├── docker/                             # Docker + Docker Compose setup
-│   ├── docker-compose.yml                   # Includes Kafka, Airflow, Prometheus, Flask
-│   ├── Dockerfile.pipeline                  # For data pipeline services
-│   └── Dockerfile.frontend                  # For Flask dashboard service
-│
 ├── tests/                              # Unit and integration tests
 │
+├── docker-compose.yml                  # Includes Kafka, Airflow, Prometheus, Flask
 ├── main.py                             # Script to start application
 ├── README.md                           # Project documentation and instructions
-└── .env.example                        # Global/shared environment config
+├── .env.example                        # Global/shared environment config
+└──requirements.txt
 
 ```
 

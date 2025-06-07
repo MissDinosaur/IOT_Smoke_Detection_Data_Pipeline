@@ -1,0 +1,12 @@
+# Python version 3.10.xx
+pandas==2.2.2
+numpy==1.26.4
+pyarrow==15.0.2
+kafka-python==2.0.2
+great_expectations==0.18.11
+pyyaml==6.0.1
+scikit-learn==1.5.0
+flask==3.0.2
+flask-cors==4.0.0
+python-dateutil==2.9.0.post0
+watchdog==4.0.0
