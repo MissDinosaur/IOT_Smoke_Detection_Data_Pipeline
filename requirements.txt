@@ -10,3 +10,4 @@ flask==3.0.2
 flask-cors==4.0.0
 python-dateutil==2.9.0.post0
 watchdog==4.0.0
+dotenv==0.9.9

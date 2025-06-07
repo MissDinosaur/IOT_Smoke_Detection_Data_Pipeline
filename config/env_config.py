@@ -1,4 +1,3 @@
-from utils import path_utils  # load load_dotenv() from path_utils 
 import os
 
 

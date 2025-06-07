@@ -3,7 +3,7 @@ version: "3.8"
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
-    container_name: zookeeper
+    container_name: smoke_zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
       ZOOKEEPER_TICK_TIME: 2000  # 2 seconds
@@ -12,7 +12,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
-    container_name: kafka
+    container_name: smoke_kafka
     depends_on:
       - zookeeper
     ports:
@@ -20,32 +20,37 @@ services:
     environment:
       KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_PORT},PLAINTEXT_HOST://localhost:${KAFKA_PORT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_PORT}
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:${KAFKA_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_CREATE_TOPICS: ${KAFKA_TOPIC_SMOKE}:1:1   # topic: partitions: replicas
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # 1 partition and 1 relica by default; need to set it false later
 
-  kafka_producer:
+  smoke_kafka_producer:
     build:
       context: .
       dockerfile: data_ingestion/Dockerfile
     container_name: kafka_producer
+    env_file:
+      - .env
     depends_on:
       - kafka
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
-    command: ["python", "stream/kafka_producer.py"]
+    command: >
+      sh -c "sleep 10 &&
+           python data_ingestion/stream/kafka_producer.py"
     volumes:
       - ./data:/app/data
     restart: unless-stopped
 
-#  kafka_consumer_test:
+#  smoke_kafka_consumer_test:
 #    build:
 #      context: .
 #      dockerfile: data_ingestion/Dockerfile
 #    container_name: kafka_consumer
 #    depends_on:
-#      - kafka
+#      - smoke_kafka
 #    environment:
 #      KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
 #    command: ["python", "stream/kafka_consumer_test.py"]
@@ -53,34 +58,35 @@ services:
 #      - ./data:/app/data
 #    restart: unless-stopped
 
-  airflow:
-    build:
-      context: .
-      dockerfile: data_processing/batch_processing/Dockerfile
-    container_name: airflow
-    depends_on:
-      - kafka
-    environment:
-      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
-      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
-      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
-      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'True'
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////root/airflow/airflow.db
-      AIRFLOW__WEBSERVER__WEB_SERVER_PORT: 8080
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data_processing/batch_processing/dags:/opt/airflow/dags
-      - ./data_processing/batch_processing/tasks:/opt/airflow/tasks
-      - ./data:/opt/airflow/data
-    command: >
-      bash -c "
-      airflow db init &&
-      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com ||
-      airflow webserver &
-      airflow scheduler
-      "
-    restart: unless-stopped
+#  airflow:
+#    build:
+#      context: .
+#      dockerfile: data_processing/batch_processing/Dockerfile
+#    container_name: airflow
+#    depends_on:
+#      - kafka
+#    environment:
+#      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+#      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+#      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+#      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'True'
+#      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////root/airflow/airflow.db
+#      AIRFLOW__WEBSERVER__WEB_SERVER_PORT: 8080
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - ./data_processing/batch_processing/dags:/opt/airflow/dags
+#      - ./data_processing/batch_processing/tasks:/opt/airflow/tasks
+#      - ./data:/opt/airflow/data
+#    command: >
+#      bash -c "
+#      airflow db init &&
+#      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com ||
+#      airflow webserver &
+#      airflow scheduler
+#      "
+#    restart: unless-stopped
+
 #  flask_api:
 #    build:
 #      context: ./frontend

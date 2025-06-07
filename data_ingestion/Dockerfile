@@ -9,8 +9,11 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy data_ingestion folder into container
-COPY data_ingestion/ .
+RUN mkdir -p ./app/utils ./data_ingestion ./config
 
-# Default command: can be overridden by docker-compose
-CMD ["python", "stream/kafka_producer.py"]
+# Copy data_ingestion folder into container
+COPY data_ingestion/ ./data_ingestion/
+COPY ../config/ ./config/
+COPY ../app/utils/ ./app/utils/
+COPY ../.env ./
+
