@@ -138,7 +138,7 @@ iot_smoke_detection_data_pipeline/
 
 4. **Build and start all services using Docker Compose**
     ```bash
-   docker-compose -f docker/docker-compose.yml up --build
+   docker-compose up --build
    ```
     This command will:
 
