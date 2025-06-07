@@ -47,11 +47,11 @@ iot_smoke_detection_data_pipeline/
 │   │   ├── detect_anomalies.py              # Smoke anomaly detection logic
 │   │   └── metrics_streaming.py             # Compute live stream analytics
 │   ├── batch_processing/
-│   │   ├── smoke_detection_dag.py        # Airflow DAG for batch pipeline
+│   │   ├── dags/
+│   │   │   └── smoke_detection_dag.py       # Airflow DAG for batch pipeline
 │   │   ├── tasks/
 │   │   │   ├── compute_batch_metrics.py     # Batch-level data quality and KPI metrics
 │   │   │   └── feature_engineering.py       # Feature processing for ML
-│   │   └── airflow.cfg                      # Local Airflow configuration (optional)
 │   └── utils.py                         # Shared data processing helper functions
 │
 ├── ml_model/
