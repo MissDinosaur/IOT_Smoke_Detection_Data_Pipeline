@@ -1,20 +1,26 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))  # add /opt/airflow into sys.path
+
+
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime
-from batch_processing.tasks.feature_engineering import run_feature_engineering
-from batch_processing.tasks.compute_batch_metrics import compute_metrics
+from datetime import datetime, timedelta
+from tasks.feature_engineering import run_feature_engineering
+from tasks.compute_batch_metrics import compute_metrics
 # from batch_processing.tasks.train_trigger import trigger_training
 
 
 default_args = {
     "start_date": datetime(2024, 1, 1),
-    "retries": 1
+    "retries": 1,
+    "retry_delay": timedelta(minutes=3)
 }
 
 with DAG(
     dag_id="smoke_detection_batch_pipeline",
+    schedule_interval=None,  # trigger by hand
     default_args=default_args,
-    schedule_interval=None,
     catchup=False,
     description="Batch pipeline for smoke detection IoT data"
 ) as dag:

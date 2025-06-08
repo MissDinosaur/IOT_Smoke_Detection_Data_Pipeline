@@ -1,14 +1,11 @@
 # Use official Apache Airflow image based on Python 3.10
 FROM apache/airflow:2.7.1-python3.10
 
-# Switch to root to install additional dependencies if needed
-USER root
+
+USER airflow
 
 # Install additional packages if you need (example: pandas, google-cloud-bigquery etc.)
-RUN pip install --no-cache-dir pandas
-
-# Switch back to airflow user
-USER airflow
+RUN pip install --no-cache-dir pandas numpy
 
 # Copy dags and tasks are mounted via volumes in docker-compose, no need to copy here
 

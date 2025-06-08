@@ -16,5 +16,5 @@ def run_feature_engineering():
     df["Temp_Humidity_Ratio"] = df["Temperature[C]"] / (df["Humidity[%]"] + 1e-5)
 
     # Save data after data featuring 
-    df.to_csv(cleaned_data_file_path, index=False)
+    df.to_csv(cleaned_data_file_path, index=False)  # mode="w" bu default
     print(f"[INFO] Feature-engineered data saved to {cleaned_data_file_path}")

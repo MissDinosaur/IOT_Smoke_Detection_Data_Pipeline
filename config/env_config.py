@@ -29,4 +29,3 @@ MODEL_PATH = os.getenv("MODEL_PATH", "models/smoke_detection_model.pkl")
 # --------------- Monitoring ---------------
 PROMETHEUS_PORT = os.getenv("PROMETHEUS_PORT","9090")
 GRAFANA_PORT = os.getenv("GRAFANA_PORT", "3000")
-

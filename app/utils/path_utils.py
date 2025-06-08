@@ -11,7 +11,7 @@ def find_project_root(marker_files=(".git", "project_config.yaml", ".env")):
         if any((path / marker).exists() for marker in marker_files):
             return path
         path = path.parent
-    raise RuntimeError("Project root not found. Please add a marker file like .git, .env or project_config.yaml")
+    return CURRENT_FILE.parent.parent.parent
 
 # Project root directory
 ROOT_DIR = find_project_root()
