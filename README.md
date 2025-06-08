@@ -99,7 +99,7 @@ iot_smoke_detection_data_pipeline/
 #### Machine Learning
 - **Scikit-learn** – Smoke event prediction with classification models  
 
-#### Monitoring & Observability
+#### Monitoring & Observability (Not confirmed)
 - **Prometheus** – Collect system/data pipeline metrics  
 - **Grafana** – Real-time visualization dashboard
 
@@ -151,6 +151,19 @@ iot_smoke_detection_data_pipeline/
     - Airflow scheduler and web UI
     - Prometheus 
     - Grafana 
+
+    Here is the relevant Web UI with default ports and login:
+
+    | Service        | URL                                            | Default Login |
+    | -------------- | ---------------------------------------------- | ------------- |
+    | **Flask API**  | [http://localhost:5000](http://localhost:5000) | N/A           |
+    | **Airflow**    | [http://localhost:8080](http://localhost:8080) | admin / admin |
+    | **Prometheus** | [http://localhost:9090](http://localhost:9090) | N/A           |
+    | **Grafana**    | [http://localhost:3000](http://localhost:3000) | admin / admin |
+
+    You can go to Airflow UI to trigger or check your tasks;
+
+    You can click flask API URL to input the data and then the system will return the predicted result.
 
 5. (Optional) **Run CLI commands inside containers**
     ```bash
