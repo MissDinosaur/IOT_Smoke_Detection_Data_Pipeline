@@ -1,48 +1,48 @@
 version: "3.8"
 
 services:
-#  zookeeper:
-#    image: confluentinc/cp-zookeeper:7.4.0
-#    container_name: smoke_zookeeper
-#    environment:
-#      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
-#      ZOOKEEPER_TICK_TIME: 2000  # 2 seconds
-#    ports:
-#      - "${ZOOKEEPER_CLIENT_PORT}:${ZOOKEEPER_CLIENT_PORT}"
-#
-#  kafka:
-#    image: confluentinc/cp-kafka:7.4.0
-#    container_name: smoke_kafka
-#    depends_on:
-#      - zookeeper
-#    ports:
-#      - "${KAFKA_PORT}:${KAFKA_PORT}"
-#    environment:
-#      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_PORT}
-#      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:${KAFKA_PORT}
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-#      KAFKA_CREATE_TOPICS: ${KAFKA_TOPIC_SMOKE}:1:1   # topic: partitions: replicas
-#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # 1 partition and 1 relica by default; need to set it false later
-#
-#  smoke_kafka_producer:
-#    build:
-#      context: .
-#      dockerfile: data_ingestion/Dockerfile
-#    container_name: kafka_producer
-#    env_file:
-#      - .env
-#    depends_on:
-#      - kafka
-#    environment:
-#      KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
-#    command: >
-#      sh -c "sleep 10 &&
-#           python data_ingestion/stream/kafka_producer.py"
-#    volumes:
-#      - ./data:/app/data
-#    restart: unless-stopped
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: smoke_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+      ZOOKEEPER_TICK_TIME: 2000  # 2 seconds
+    ports:
+      - "${ZOOKEEPER_CLIENT_PORT}:${ZOOKEEPER_CLIENT_PORT}"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: smoke_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA_PORT}:${KAFKA_PORT}"
+    environment:
+      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_PORT}
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:${KAFKA_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_CREATE_TOPICS: ${KAFKA_TOPIC_SMOKE}:1:1   # topic: partitions: replicas
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # 1 partition and 1 relica by default; need to set it false later
+
+  smoke_kafka_producer:
+    build:
+      context: .
+      dockerfile: data_ingestion/Dockerfile
+    container_name: kafka_producer
+    env_file:
+      - .env
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
+    command: >
+      sh -c "sleep 10 &&
+           python data_ingestion/stream/kafka_producer.py"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
 
 #  smoke_kafka_consumer_test:
 #    build:
