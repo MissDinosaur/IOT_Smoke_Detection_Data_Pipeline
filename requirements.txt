@@ -11,3 +11,13 @@ flask-cors==4.0.0
 python-dateutil==2.9.0.post0
 watchdog==4.0.0
 dotenv==0.9.9
+
+# Stream processing dependencies
+pyspark==3.4.1
+py4j==0.10.9.7
+
+# ML dependencies
+matplotlib==3.7.1
+seaborn==0.12.2
+jupyter==1.0.0
+requests==2.31.0

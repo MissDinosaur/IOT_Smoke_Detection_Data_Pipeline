@@ -1,0 +1,36 @@
+# Base image with Python 3.10 and Spark
+FROM bitnami/spark:3.4.1
+
+# Switch to root to install packages
+USER root
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    kafka-python==2.0.2 \
+    numpy==1.24.3 \
+    pandas==2.0.3
+
+# Create necessary directories
+RUN mkdir -p /app/data_processing/stream_processing \
+    /app/config \
+    /app/app/utils \
+    /app/data/checkpoints \
+    /app/data/processed_stream
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY data_processing/stream_processing/ ./data_processing/stream_processing/
+COPY config/ ./config/
+COPY app/utils/ ./app/utils/
+COPY .env ./
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Switch back to spark user
+USER 1001
+
+# Default command
+CMD ["python", "data_processing/stream_processing/spark_streaming_processor.py"]
