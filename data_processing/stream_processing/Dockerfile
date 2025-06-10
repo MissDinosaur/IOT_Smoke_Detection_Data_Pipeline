@@ -1,12 +1,12 @@
 # Base image with Python 3.10
-FROM python:3.10-slim
+FROM python:3.10
 
 # Set working directory
 WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

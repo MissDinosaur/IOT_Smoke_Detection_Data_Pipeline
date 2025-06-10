@@ -1,0 +1,75 @@
+# Dockerfile for Spark Streaming Processor
+# Production-ready Spark container for IoT smoke detection analytics
+
+FROM apache/spark:3.4.0-python3
+
+# Set environment variables
+ENV SPARK_HOME=/opt/spark
+ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9.5-src.zip:${PYTHONPATH}"
+ENV PYSPARK_PYTHON=python3
+ENV PYSPARK_DRIVER_PYTHON=python3
+
+# Switch to root to install packages
+USER root
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    vim \
+    procps \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Install additional Spark packages for Kafka integration
+RUN wget -O /opt/spark/jars/spark-sql-kafka-0-10_2.12-3.4.0.jar \
+    https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.4.0/spark-sql-kafka-0-10_2.12-3.4.0.jar
+
+RUN wget -O /opt/spark/jars/kafka-clients-3.4.0.jar \
+    https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.4.0/kafka-clients-3.4.0.jar
+
+RUN wget -O /opt/spark/jars/spark-streaming-kafka-0-10_2.12-3.4.0.jar \
+    https://repo1.maven.org/maven2/org/apache/spark/spark-streaming-kafka-0-10_2.12/3.4.0/spark-streaming-kafka-0-10_2.12-3.4.0.jar
+
+RUN wget -O /opt/spark/jars/commons-pool2-2.11.1.jar \
+    https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar
+
+# Create application directories
+RUN mkdir -p /app/data/checkpoints \
+    && mkdir -p /app/data/processed_stream \
+    && mkdir -p /app/logs \
+    && mkdir -p /app/config
+
+# Copy application code
+COPY data_processing/ /app/data_processing/
+COPY config/ /app/config/
+COPY ml/ /app/ml/
+
+# Set working directory
+WORKDIR /app
+
+# Create spark user and set permissions
+RUN groupadd -r spark && useradd -r -g spark spark
+RUN chown -R spark:spark /app /opt/spark
+RUN chmod +x /app/data_processing/stream_processing/spark_streaming_processor.py
+
+# Configure Spark settings
+ENV SPARK_CONF_DIR=/opt/spark/conf
+COPY spark-defaults.conf /opt/spark/conf/spark-defaults.conf
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:4040 || exit 1
+
+# Switch back to spark user
+USER spark
+
+# Expose Spark UI port
+EXPOSE 4040
+
+# Set default command
+CMD ["python3", "/app/data_processing/stream_processing/spark_streaming_processor.py"]
