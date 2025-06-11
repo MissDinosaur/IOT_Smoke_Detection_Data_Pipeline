@@ -1,8 +1,7 @@
-version: "3.8"
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
+    # platform: linux/amd64
     container_name: smoke_zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
@@ -12,6 +11,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
+    platform: linux/amd64
     container_name: smoke_kafka
     depends_on:
       - zookeeper
@@ -25,6 +25,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_CREATE_TOPICS: ${KAFKA_TOPIC_SMOKE}:1:1   # topic: partitions: replicas
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # 1 partition and 1 relica by default; need to set it false later
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:${KAFKA_PORT} --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   smoke_kafka_producer:
     build:
@@ -34,12 +39,17 @@ services:
     env_file:
       - .env
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
+      KAFKA_TOPIC_SMOKE: ${KAFKA_TOPIC_SMOKE}
     command: >
-      sh -c "sleep 10 &&
-           python data_ingestion/stream/kafka_producer.py"
+      sh -c "
+        echo 'Waiting for Kafka to be ready...' &&
+        sleep 30 &&
+        python data_ingestion/stream/kafka_producer.py
+      "
     volumes:
       - ./data:/app/data
     restart: unless-stopped
@@ -208,24 +218,46 @@ services:
 #      - .env
 #    depends_on:
 #      - kafka
-#
-#  prometheus:
-#    image: prom/prometheus
-#    ports:
-#      - "${PROMETHEUS_PORT}:9090"
-#    volumes:
-#      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-#
-#  grafana:
-#    image: grafana/grafana
-#    ports:
-#      - "${GRAFANA_PORT}:3000"
-#    volumes:
-#      - ./monitoring/grafana:/var/lib/grafana
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/smoke-detection.json
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+<<<<<<< HEAD
   spark_data:
   spark_logs:
   ml_models:
   ml_logs:
+=======
+  prometheus_data:
+  grafana_data:
+>>>>>>> 4e69aaa169ce413b57955e397b30e2311daeca75

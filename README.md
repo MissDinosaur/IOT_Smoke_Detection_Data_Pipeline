@@ -180,3 +180,51 @@ iot_smoke_detection_data_pipeline/
     # Use --volumes if you want to delete persistent data (Grafana dashboards, etc.):
     docker-compose down --volumes
     ```
+
+## Monitoring System
+
+The project includes a comprehensive monitoring system using Prometheus and Grafana to track various metrics from the IoT smoke detection pipeline.
+
+### Monitoring Architecture
+
+The monitoring stack consists of:
+- **Prometheus**: Collects and stores time-series metrics
+- **Grafana**: Visualizes metrics in customizable dashboards
+- **Custom Metrics**: Python-based metrics collection using prometheus_client
+
+### Available Metrics
+
+The system tracks several key metrics:
+
+1. **Sensor Metrics**
+   - Temperature readings (Celsius)
+   - Humidity levels (%)
+   - TVOC (Total Volatile Organic Compounds)
+   - eCO2 (Equivalent CO2)
+   - Pressure readings
+   - Particulate matter (PM1.0, PM2.5)
+
+2. **System Metrics**
+   - Fire alarm occurrences
+   - Data processing times
+   - System performance indicators
+
+### Accessing Monitoring Tools
+
+1. **Prometheus**
+   - URL: http://localhost:9090
+   - Use for: Querying raw metrics, checking data collection status
+
+2. **Grafana**
+   - URL: http://localhost:3000
+   - Default login: admin/admin
+   - Use for: Visualizing metrics, creating dashboards
+   - Pre-configured dashboard available in `monitoring/grafana-dashboard.json`
+
+### Integration Points
+
+The monitoring system integrates with the data pipeline at several points:
+- Stream processing metrics
+- Batch processing performance
+- ML model predictions
+- System health indicators
