@@ -41,9 +41,11 @@ def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPI
         print("Start generating synthetic data...")
         schema = utils.load_kaggle_data_schema()
         count = 0
+        current_timestamp = int(time.time())
         while True:
-            row: dict = sim.generate_random_row(schema, missing_rate)  # existing 5% missing by default
+            row: dict = sim.generate_random_row(schema, current_timestamp, missing_rate)  # existing 5% missing by default
             count +=1
+            current_timestamp +=2
             print(f"Generated {count}th row data: {row}")
 
             message = json.dumps(row)

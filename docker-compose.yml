@@ -57,50 +57,50 @@ services:
 #    volumes:
 #      - ./data:/app/data
 #    restart: unless-stopped
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  airflow:
-    build:
-      context: .
-      dockerfile: data_processing/batch_processing/Dockerfile
-    container_name: airflow
-    depends_on:
-      - postgres  
-    environment:
-      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
-      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
-      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
-      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'True'
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:${POSTGRES_PORT}/airflow
-      AIRFLOW__WEBSERVER__WEB_SERVER_PORT: 8080
-      AIRFLOW_UID: 50000
-      AIRFLOW_GID: 50000
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data_processing/batch_processing/dags:/opt/airflow/dags
-      - ./data_processing/batch_processing/tasks:/opt/airflow/tasks
-      - ./data:/opt/airflow/data
-      - ./app:/opt/airflow/app
-      - ./config:/opt/airflow/config
-      - ./data_ingestion:/opt/airflow/data_ingestion
-    command: >
-      bash -c "
-      airflow db upgrade &&
-      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin &&
-      airflow scheduler &
-      airflow webserver
-      "
-    restart: unless-stopped
+#  postgres:
+#    image: postgres:15
+#    environment:
+#      POSTGRES_USER: ${POSTGRES_USER}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#      POSTGRES_DB: ${POSTGRES_DB}
+#    ports:
+#      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#
+#  airflow:
+#    build:
+#      context: .
+#      dockerfile: data_processing/batch_processing/Dockerfile
+#    container_name: airflow
+#    depends_on:
+#      - postgres  
+#    environment:
+#      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+#      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+#      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+#      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'True'
+#      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:${POSTGRES_PORT}/airflow
+#      AIRFLOW__WEBSERVER__WEB_SERVER_PORT: 8080
+#      AIRFLOW_UID: 50000
+#      AIRFLOW_GID: 50000
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - ./data_processing/batch_processing/dags:/opt/airflow/dags
+#      - ./data_processing/batch_processing/tasks:/opt/airflow/tasks
+#      - ./data:/opt/airflow/data
+#      - ./app:/opt/airflow/app
+#      - ./config:/opt/airflow/config
+#      - ./data_ingestion:/opt/airflow/data_ingestion
+#    command: >
+#      bash -c "
+#      airflow db upgrade &&
+#      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin &&
+#      airflow scheduler &
+#      airflow webserver
+#      "
+#    restart: unless-stopped
 
 #  flask_api:
 #    build:
@@ -127,5 +127,5 @@ services:
 #    volumes:
 #      - ./monitoring/grafana:/var/lib/grafana
 
-volumes:
-  postgres_data:
+#volumes:
+#  postgres_data:
