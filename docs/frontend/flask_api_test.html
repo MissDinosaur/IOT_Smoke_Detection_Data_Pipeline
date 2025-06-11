@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask API Test - IoT Smoke Detection</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+
+        .section h2 {
+            color: #495057;
+            margin-top: 0;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .fire-btn {
+            background: #dc3545;
+        }
+
+        .fire-btn:hover {
+            background: #c82333;
+        }
+
+        .test-btn {
+            background: #28a745;
+        }
+
+        .test-btn:hover {
+            background: #218838;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .fire-result {
+            border-left: 4px solid #dc3545;
+            background: #f8d7da;
+        }
+
+        .safe-result {
+            border-left: 4px solid #28a745;
+            background: #d4edda;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status.healthy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .input-group input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔥 Flask API Test Interface</h1>
+
+        <!-- System Status Section -->
+        <div class="section">
+            <h2>🔍 System Status</h2>
+            <button onclick="checkHealth()" class="test-btn">Check Health</button>
+            <button onclick="getModelInfo()" class="test-btn">Get Model Info</button>
+            <button onclick="getConfig()" class="test-btn">Get Config</button>
+            <button onclick="getPredictionStats()" class="test-btn">Get Stats</button>
+            <div id="status-result" class="result"></div>
+        </div>
+
+        <!-- Quick Tests Section -->
+        <div class="section">
+            <h2>⚡ Quick Tests</h2>
+            <button onclick="testSample()" class="test-btn">Test Sample Data</button>
+            <button onclick="testFireScenario()" class="fire-btn">Test Fire Scenario</button>
+            <button onclick="getMetrics()" class="test-btn">Get Metrics</button>
+            <button onclick="getSensorSchema()" class="test-btn">Get Schema</button>
+            <button onclick="reloadModel()" class="fire-btn">Reload Model</button>
+            <div id="quick-test-result" class="result"></div>
+        </div>
+
+        <!-- Custom Prediction Section -->
+        <div class="section">
+            <h2>🎛️ Custom Sensor Data Prediction</h2>
+            <div class="input-section" id="sensor-inputs">
+                <!-- Sensor inputs will be generated here -->
+            </div>
+            <button onclick="predictCustom()">Analyze Fire Risk</button>
+            <button onclick="validateCustom()">Validate Data Only</button>
+            <button onclick="resetToDefaults()">Reset to Defaults</button>
+            <div id="custom-result" class="result"></div>
+        </div>
+
+        <!-- Batch Prediction Section -->
+        <div class="section">
+            <h2>📊 Batch Prediction Test</h2>
+            <button onclick="testBatchPrediction()">Test Batch Prediction (3 samples)</button>
+            <div id="batch-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000';
+
+        // Default sensor data matching our Flask API requirements
+        const defaultSensorData = {
+            'Temperature[C]': 25.5,
+            'Humidity[%]': 45.0,
+            'TVOC[ppb]': 150.0,
+            'eCO2[ppm]': 400.0,
+            'Raw H2': 13000.0,
+            'Raw Ethanol': 18500.0,
+            'Pressure[hPa]': 1013.25,
+            'PM1.0': 10.0,
+            'PM2.5': 15.0,
+            'NC0.5': 100.0,
+            'NC1.0': 80.0,
+            'NC2.5': 20.0
+        };
+
+        // Initialize sensor inputs
+        function initializeSensorInputs() {
+            const container = document.getElementById('sensor-inputs');
+            container.innerHTML = '';
+
+            Object.entries(defaultSensorData).forEach(([field, value]) => {
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'input-group';
+
+                inputGroup.innerHTML = `
+                    <label>${field}</label>
+                    <input type="number" step="0.1" value="${value}" id="input-${field}" />
+                `;
+
+                container.appendChild(inputGroup);
+            });
+        }
+
+        // Get current sensor data from inputs
+        function getCurrentSensorData() {
+            const data = {};
+            Object.keys(defaultSensorData).forEach(field => {
+                const input = document.getElementById(`input-${field}`);
+                data[field] = parseFloat(input.value) || 0;
+            });
+            return data;
+        }
+
+        // Reset inputs to defaults
+        function resetToDefaults() {
+            Object.entries(defaultSensorData).forEach(([field, value]) => {
+                const input = document.getElementById(`input-${field}`);
+                if (input) input.value = value;
+            });
+        }
+
+        // API call helper
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                const result = await response.json();
+
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: result
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // Display result helper
+        function displayResult(elementId, result, prediction = null) {
+            const element = document.getElementById(elementId);
+
+            if (!result.success) {
+                element.className = 'result status error';
+                element.textContent = `Error: ${result.error || 'API call failed'}`;
+                return;
+            }
+
+            // Add special styling for predictions
+            if (prediction) {
+                if (prediction.prediction_label === 'fire') {
+                    element.className = 'result fire-result';
+                } else {
+                    element.className = 'result safe-result';
+                }
+            } else {
+                element.className = 'result';
+            }
+
+            element.textContent = JSON.stringify(result.data, null, 2);
+        }
+
+        // System status functions
+        async function checkHealth() {
+            const result = await apiCall('/health');
+            displayResult('status-result', result);
+        }
+
+        async function getModelInfo() {
+            const result = await apiCall('/model/info');
+            displayResult('status-result', result);
+        }
+
+        async function getMetrics() {
+            const result = await apiCall('/metrics');
+            displayResult('quick-test-result', result);
+        }
+
+        async function getSensorSchema() {
+            const result = await apiCall('/sensors/schema');
+            displayResult('quick-test-result', result);
+        }
+
+        async function reloadModel() {
+            const result = await apiCall('/model/reload', 'POST');
+            displayResult('quick-test-result', result);
+        }
+
+        async function getConfig() {
+            const result = await apiCall('/config');
+            displayResult('status-result', result);
+        }
+
+        async function getPredictionStats() {
+            const result = await apiCall('/predictions/stats');
+            displayResult('status-result', result);
+        }
+
+        // Quick test functions
+        async function testSample() {
+            const result = await apiCall('/predict/sample');
+            if (result.success && result.data.prediction) {
+                displayResult('quick-test-result', result, result.data.prediction);
+            } else {
+                displayResult('quick-test-result', result);
+            }
+        }
+
+        async function testFireScenario() {
+            const result = await apiCall('/predict/fire-scenario');
+            if (result.success && result.data.prediction) {
+                displayResult('quick-test-result', result, result.data.prediction);
+            } else {
+                displayResult('quick-test-result', result);
+            }
+        }
+
+        // Custom prediction functions
+        async function predictCustom() {
+            const sensorData = getCurrentSensorData();
+            const result = await apiCall('/predict', 'POST', sensorData);
+            displayResult('custom-result', result, result.data);
+        }
+
+        async function validateCustom() {
+            const sensorData = getCurrentSensorData();
+            const result = await apiCall('/validate', 'POST', sensorData);
+            displayResult('custom-result', result);
+        }
+
+        // Batch prediction function
+        async function testBatchPrediction() {
+            const batchData = [
+                defaultSensorData,
+                {
+                    ...defaultSensorData,
+                    'Temperature[C]': 85.0,
+                    'Humidity[%]': 20.0,
+                    'PM2.5': 250.0
+                },
+                {
+                    ...defaultSensorData,
+                    'Temperature[C]': 15.0,
+                    'Humidity[%]': 80.0
+                }
+            ];
+
+            const result = await apiCall('/predict/batch', 'POST', batchData);
+            displayResult('batch-result', result);
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeSensorInputs();
+            checkHealth(); // Check system status on load
+        });
+    </script>
+</body>
+
+</html>

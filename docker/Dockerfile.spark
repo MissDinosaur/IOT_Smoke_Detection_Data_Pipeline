@@ -27,8 +27,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements_minimal.txt /tmp/requirements_minimal.txt
-RUN pip install --no-cache-dir -r /tmp/requirements_minimal.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Install Airflow separately to avoid dependency conflicts
 RUN pip install --no-cache-dir \

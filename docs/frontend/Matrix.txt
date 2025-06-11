@@ -1,0 +1,81 @@
+1.	My metrics.py file defines these metrics:
+•	Temperature, Humidity, Pressure
+•	TVOC, eCO2
+•	PM1.0, PM2.5
+•	Fire alarm counter
+•	Processing time
+2.	Your  need to:
+•	Import and use these metrics in their application code
+•	Start the metrics server
+•	Update the metrics whenever new data comes in
+Here's an example of what you need to add to their code:
+1.	First, you need to import your metrics
+from monitoring.metrics import (
+    start_metrics_server,
+    update_sensor_metrics,
+    record_processing_time
+)
+
+2.	When the application starts, you need to start the metrics server:
+3.	# At application startup
+4.	start_metrics_server(port=8000)
+
+3.	Whenever you process new sensor data, you should call:
+4.	# Example: When new sensor data arrives
+5.	sensor_data = {
+6.	    'Temperature[C]': 25.5,
+7.	    'Humidity[%]': 60,
+8.	    'TVOC[ppb]': 800,
+9.	    'eCO2[ppm]': 450,
+10.	    'Pressure[hPa]': 1013,
+11.	    'PM1.0': 10,
+12.	    'PM2.5': 25,
+13.	    'Fire Alarm': 0
+14.	}
+15.	update_sensor_metrics(sensor_id='sensor1', data=sensor_data)
+
+5.	For measuring processing time:
+6.	# Around any processing operation they want to measure
+7.	with record_processing_time('data_processing'):
+8.	    # their processing code here
+9.	    pass
+
+Your to do:
+1.	Import the metrics functions from your module
+2.	Start the metrics server when their application starts
+3.	Call update_sensor_metrics() whenever they get new sensor data
+4.	Use record_processing_time() around processing operations
+The data flow should be:
+graph LR
+    A[Sensor Data] --> B[Main Application]
+    B --> C[Metrics Code]
+    C --> D[Prometheus /metrics endpoint]
+    D --> E[Prometheus Server]
+    E --> F[Grafana]
+
+Final overview:
+1.	Make sure the application is running on the same machine as Prometheus
+2.	The metrics endpoint needs to be accessible on port 8000
+3.	The metrics will automatically be exposed at http://localhost:8000/metrics
+4.	Prometheus will scrape these metrics every 15 seconds (as configured)
+
+You can use the metrics like this in the application(example):
+from monitoring.metrics import start_metrics_server, update_sensor_metrics
+
+# At application startup
+start_metrics_server(port=8000)
+
+# When processing data
+data = {
+    'Temperature[C]': 25.5,
+    'Humidity[%]': 60,
+    'TVOC[ppb]': 800,
+    'eCO2[ppm]': 450,
+    'Pressure[hPa]': 1013,
+    'PM1.0': 10,
+    'PM2.5': 25,
+    'Fire Alarm': 0
+}
+update_sensor_metrics(data)
+
+

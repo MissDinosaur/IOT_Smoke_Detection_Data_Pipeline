@@ -6,6 +6,8 @@ FROM python:3.10
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
+ENV MPLCONFIGDIR=/tmp/matplotlib
+ENV FONTCONFIG_PATH=/tmp/fontconfig
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -16,10 +18,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY requirements_minimal.txt /app/requirements_minimal.txt
+COPY requirements.txt /app/requirements.txt
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements_minimal.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install additional ML-specific dependencies
 RUN pip install --no-cache-dir \
@@ -30,12 +32,16 @@ RUN pip install --no-cache-dir \
 # Copy application code
 COPY ml/ /app/ml/
 COPY config/ /app/config/
-# COPY data_processing/business_logic/ /app/data_processing/business_logic/
+COPY data_ingestion/ /app/data_ingestion/
+COPY app/ /app/app/
 
-# Create necessary directories
+# Create necessary directories including matplotlib config
 RUN mkdir -p /app/ml/models \
     && mkdir -p /app/logs \
-    && mkdir -p /app/data
+    && mkdir -p /app/data \
+    && mkdir -p /tmp/matplotlib \
+    && mkdir -p /tmp/fontconfig \
+    && chmod 777 /tmp/matplotlib /tmp/fontconfig
 
 # Create non-root user (check if exists first)
 RUN groupadd -r mluser || true
@@ -52,5 +58,5 @@ USER mluser
 # Expose ML API port
 EXPOSE 5000
 
-# Default command - start ML API server
-CMD ["python", "-m", "ml.inference.predict_wrapper"]
+# Generate initial model if it doesn't exist, then start ML trainer service
+CMD ["sh", "-c", "python ml/training/generate_initial_model.py && python ml/training/auto_trainer.py"]

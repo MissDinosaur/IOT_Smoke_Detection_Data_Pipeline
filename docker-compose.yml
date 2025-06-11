@@ -34,7 +34,7 @@ services:
   smoke_kafka_producer:
     build:
       context: .
-      dockerfile: data_ingestion/Dockerfile
+      dockerfile: docker/Dockerfile.ingestion
     container_name: kafka_producer
     env_file:
       - .env
@@ -57,7 +57,7 @@ services:
   stream_processor:
     build:
       context: .
-      dockerfile: data_processing/stream_processing/Dockerfile
+      dockerfile: docker/Dockerfile.stream
     container_name: stream_processor
     depends_on:
       - kafka
@@ -74,11 +74,11 @@ services:
            python data_processing/stream_processing/transform_and_save_stream.py"
     restart: unless-stopped
 
-  # ML Training Service - Automatically trains models
+  # ML Training Service - Automatically trains models and generates pickle files
   ml_trainer:
     build:
       context: .
-      dockerfile: Dockerfile.ml
+      dockerfile: docker/Dockerfile.ml
     container_name: ml_trainer
     environment:
       ML_AUTO_TRAIN_ON_STARTUP: "true"
@@ -88,52 +88,61 @@ services:
       - ./data:/app/data
       - ./ml:/app/ml
       - ./config:/app/config
+      - ./app:/app/app
       - ml_models:/app/ml/models
       - ml_logs:/app/logs
-    command: >
-      sh -c "python3 /app/ml/training/auto_trainer.py"
     restart: unless-stopped
 
-  # ML API Service - Serves ML predictions
-  ml_api:
+  # Flask API Backend - Central API layer for predictions and system interaction
+  flask_api:
     build:
       context: .
-      dockerfile: Dockerfile.ml
-    container_name: ml_api
+      dockerfile: docker/Dockerfile.api
+    container_name: flask_api
     depends_on:
       - ml_trainer
     environment:
-      ML_API_HOST: "0.0.0.0"
-      ML_API_PORT: "5000"
-      ML_API_DEBUG: "false"
+      MODEL_PATH: "/app/ml/models/best_model.pkl"
+      MODEL_RELOAD_INTERVAL: "3600"
       PYTHONPATH: /app
+      FLASK_ENV: production
     volumes:
+      - ./data:/app/data
       - ./ml:/app/ml
       - ./config:/app/config
+      - ./app:/app/app
       - ml_models:/app/ml/models
       - ml_logs:/app/logs
     ports:
-      - "5000:5000"  # ML API
+      - "5000:5000"  # Flask API
     command: >
-      sh -c "sleep 60 && python3 -m ml.inference.predict_wrapper"
+      sh -c "
+        echo 'Waiting for ML model to be generated...' &&
+        while [ ! -f /app/ml/models/best_model.pkl ]; do
+          echo 'Waiting for model file...' &&
+          sleep 10
+        done &&
+        echo 'Model found, starting Flask API...' &&
+        python -m app.api.prediction_api --host 0.0.0.0 --port 5000
+      "
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 90s
+      start_period: 120s
 
-  # Spark Stream Processor - Now calls ML API instead of loading models directly
+  # Spark Stream Processor - Now calls Flask API instead of loading models directly
   spark_stream_processor:
     build:
       context: .
-      dockerfile: Dockerfile.spark
+      dockerfile: docker/Dockerfile.spark
     container_name: spark_stream_processor
     depends_on:
       - kafka
       - zookeeper
-      - ml_api
+      - flask_api
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
       KAFKA_TOPIC_SMOKE: ${KAFKA_TOPIC_SMOKE}
@@ -141,7 +150,7 @@ services:
       PYSPARK_PYTHON: python3
       PYSPARK_DRIVER_PYTHON: python3
       PYTHONPATH: /app:/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.5-src.zip
-      ML_API_URL: "http://ml_api:5000"
+      ML_API_URL: "http://flask_api:5000"
       ENABLE_ML_PREDICTIONS: "true"
     volumes:
       - ./data:/app/data
@@ -155,7 +164,7 @@ services:
       - "4041:4041"  # Additional Spark UI
     command: >
       sh -c "sleep 90 &&
-             python3 /app/data_processing/stream_processing/spark_streaming_processor.py --enable-console --ml-api-url http://ml_api:5000"
+             python3 /app/data_processing/stream_processing/spark_streaming_processor.py --enable-console --ml-api-url http://flask_api:5000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4040 || exit 1"]
@@ -177,7 +186,7 @@ services:
   airflow:
     build:
       context: .
-      dockerfile: data_processing/batch_processing/Dockerfile
+      dockerfile: docker/Dockerfile.airflow
     container_name: airflow
     depends_on:
       - postgres  
