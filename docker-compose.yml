@@ -252,12 +252,9 @@ services:
 
 volumes:
   postgres_data:
-<<<<<<< HEAD
   spark_data:
   spark_logs:
   ml_models:
   ml_logs:
-=======
   prometheus_data:
   grafana_data:
->>>>>>> 4e69aaa169ce413b57955e397b30e2311daeca75

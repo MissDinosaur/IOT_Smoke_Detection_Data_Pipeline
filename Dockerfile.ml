@@ -1,7 +1,7 @@
 # Dockerfile for ML Service
 # Dedicated container for ML model serving and predictions
 
-FROM python:3.10-slim
+FROM python:3.10
 
 # Set environment variables
 ENV PYTHONPATH=/app
@@ -16,10 +16,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY requirements.txt /app/requirements.txt
+COPY requirements_minimal.txt /app/requirements_minimal.txt
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements_minimal.txt
 
 # Install additional ML-specific dependencies
 RUN pip install --no-cache-dir \
@@ -30,16 +30,17 @@ RUN pip install --no-cache-dir \
 # Copy application code
 COPY ml/ /app/ml/
 COPY config/ /app/config/
-COPY data_processing/business_logic/ /app/data_processing/business_logic/
+# COPY data_processing/business_logic/ /app/data_processing/business_logic/
 
 # Create necessary directories
 RUN mkdir -p /app/ml/models \
     && mkdir -p /app/logs \
     && mkdir -p /app/data
 
-# Create non-root user
-RUN groupadd -r mluser && useradd -r -g mluser mluser
-RUN chown -R mluser:mluser /app
+# Create non-root user (check if exists first)
+RUN groupadd -r mluser || true
+RUN useradd -r -g mluser mluser || true
+RUN chown -R mluser:mluser /app || true
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \

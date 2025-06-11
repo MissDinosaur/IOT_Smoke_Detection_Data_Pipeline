@@ -7,8 +7,8 @@ USER root
 # Install Python dependencies
 RUN pip install --no-cache-dir \
     kafka-python==2.0.2 \
-    numpy==1.24.3 \
-    pandas==2.0.3
+    numpy \
+    pandas
 
 # Create necessary directories
 RUN mkdir -p /app/data_processing/stream_processing \

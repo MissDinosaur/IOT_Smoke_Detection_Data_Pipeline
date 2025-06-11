@@ -12,18 +12,29 @@ ENV PYSPARK_DRIVER_PYTHON=python3
 # Switch to root to install packages
 USER root
 
-# Install system dependencies
+# Install system dependencies including build tools for google-re2
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
     vim \
     procps \
     net-tools \
+    build-essential \
+    g++ \
+    gcc \
+    libc6-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+COPY requirements_minimal.txt /tmp/requirements_minimal.txt
+RUN pip install --no-cache-dir -r /tmp/requirements_minimal.txt
+
+# Install Airflow separately to avoid dependency conflicts
+RUN pip install --no-cache-dir \
+    apache-airflow==2.8.1 \
+    apache-airflow-providers-postgres==5.8.0 \
+    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-3.8.txt"
 
 # Install additional Spark packages for Kafka integration
 RUN wget -O /opt/spark/jars/spark-sql-kafka-0-10_2.12-3.4.0.jar \
@@ -52,9 +63,10 @@ COPY ml/ /app/ml/
 # Set working directory
 WORKDIR /app
 
-# Create spark user and set permissions
-RUN groupadd -r spark && useradd -r -g spark spark
-RUN chown -R spark:spark /app /opt/spark
+# Create spark user and set permissions (check if exists first)
+RUN groupadd -r spark || true
+RUN useradd -r -g spark spark || true
+RUN chown -R spark:spark /app /opt/spark || true
 RUN chmod +x /app/data_processing/stream_processing/spark_streaming_processor.py
 
 # Configure Spark settings
