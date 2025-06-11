@@ -54,19 +54,115 @@ services:
       - ./data:/app/data
     restart: unless-stopped
 
-#  smoke_kafka_consumer_test:
-#    build:
-#      context: .
-#      dockerfile: data_ingestion/Dockerfile
-#    container_name: kafka_consumer
-#    depends_on:
-#      - smoke_kafka
-#    environment:
-#      KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
-#    command: ["python", "stream/kafka_consumer_test.py"]
-#    volumes:
-#      - ./data:/app/data
-#    restart: unless-stopped
+  stream_processor:
+    build:
+      context: .
+      dockerfile: data_processing/stream_processing/Dockerfile
+    container_name: stream_processor
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
+      KAFKA_TOPIC_SMOKE: ${KAFKA_TOPIC_SMOKE}
+    volumes:
+      - ./data:/app/data
+      - ./data_processing:/app/data_processing
+      - ./config:/app/config
+      - ./app:/app/app
+    command: >
+      sh -c "sleep 15 &&
+           python data_processing/stream_processing/transform_and_save_stream.py"
+    restart: unless-stopped
+
+  # ML Training Service - Automatically trains models
+  ml_trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile.ml
+    container_name: ml_trainer
+    environment:
+      ML_AUTO_TRAIN_ON_STARTUP: "true"
+      ML_TRAINING_INTERVAL_HOURS: "24"
+      PYTHONPATH: /app
+    volumes:
+      - ./data:/app/data
+      - ./ml:/app/ml
+      - ./config:/app/config
+      - ml_models:/app/ml/models
+      - ml_logs:/app/logs
+    command: >
+      sh -c "python3 /app/ml/training/auto_trainer.py"
+    restart: unless-stopped
+
+  # ML API Service - Serves ML predictions
+  ml_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.ml
+    container_name: ml_api
+    depends_on:
+      - ml_trainer
+    environment:
+      ML_API_HOST: "0.0.0.0"
+      ML_API_PORT: "5000"
+      ML_API_DEBUG: "false"
+      PYTHONPATH: /app
+    volumes:
+      - ./ml:/app/ml
+      - ./config:/app/config
+      - ml_models:/app/ml/models
+      - ml_logs:/app/logs
+    ports:
+      - "5000:5000"  # ML API
+    command: >
+      sh -c "sleep 60 && python3 -m ml.inference.predict_wrapper"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  # Spark Stream Processor - Now calls ML API instead of loading models directly
+  spark_stream_processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: spark_stream_processor
+    depends_on:
+      - kafka
+      - zookeeper
+      - ml_api
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
+      KAFKA_TOPIC_SMOKE: ${KAFKA_TOPIC_SMOKE}
+      SPARK_HOME: /opt/spark
+      PYSPARK_PYTHON: python3
+      PYSPARK_DRIVER_PYTHON: python3
+      PYTHONPATH: /app:/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.5-src.zip
+      ML_API_URL: "http://ml_api:5000"
+      ENABLE_ML_PREDICTIONS: "true"
+    volumes:
+      - ./data:/app/data
+      - ./data_processing:/app/data_processing
+      - ./config:/app/config
+      - ./scripts:/app/scripts
+      - spark_data:/app/data/spark
+      - spark_logs:/app/logs
+    ports:
+      - "4040:4040"  # Spark UI
+      - "4041:4041"  # Additional Spark UI
+    command: >
+      sh -c "sleep 90 &&
+             python3 /app/data_processing/stream_processing/spark_streaming_processor.py --enable-console --ml-api-url http://ml_api:5000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4040 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
   postgres:
     image: postgres:15
     environment:
@@ -156,5 +252,9 @@ services:
 
 volumes:
   postgres_data:
+  spark_data:
+  spark_logs:
+  ml_models:
+  ml_logs:
   prometheus_data:
   grafana_data:
