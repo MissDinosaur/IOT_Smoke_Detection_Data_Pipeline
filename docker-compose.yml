@@ -99,7 +99,7 @@ services:
       sh -c "
         echo '🚀 Starting ML Training Pipeline...' &&
         echo '📊 Training initial model (this may take 30-60 minutes)...' &&
-        python ml/training/initial_model_generator.py &&
+        python ml/training/generate_initial_model.py &&
         echo '✅ Initial model training completed.' &&
         echo '📁 Copying model to shared locations...' &&
         mkdir -p /app/models &&
