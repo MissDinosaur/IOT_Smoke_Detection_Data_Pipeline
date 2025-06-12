@@ -212,9 +212,7 @@ def retry_on_kafka_error(
                         f"Unexpected error: {str(general_error)}", context=func.__name__
                     ) from general_error
 
-            return wrapper
-
-        return decorator
+        return wrapper
 
     return decorator
 

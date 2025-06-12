@@ -17,7 +17,6 @@ from data_ingestion import utils
 import simulate_stream_data as sim
 
 
-
 def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPIC_SMOKE):
     """
     Generate and sent synthetic data by Kafka every 2 senconds
@@ -25,12 +24,16 @@ def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPI
     interval: The interval of generating data
     topic: Kafka topic
     """
+def kafka_produce_and_send_data(
+    missing_rate, interval=2.0, topic=cfg.KAFKA_TOPIC_SMOKE
+):
+
     try:
         while True:
             try:
                 producer = KafkaProducer(
                     bootstrap_servers=[cfg.KAFKA_BOOTSTRAP_SERVERS],
-                    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+                    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
                 )
                 print("Producer is created.")
                 break
@@ -38,24 +41,29 @@ def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPI
                 print("Kafka broker not available, retrying...")
                 time.sleep(10)
         print(f"Kafka producer initialized. Topic: {topic}")
-    
+
         print("Start generating synthetic data...")
         schema = utils.load_kaggle_data_schema()
         count = 0
         current_timestamp = int(time.time())
         while True:
-            row: dict = sim.generate_random_row(schema, current_timestamp, missing_rate)  # existing 5% missing by default
-            count +=1
-            current_timestamp +=int(interval)
+            row: dict = sim.generate_random_row(
+                schema, current_timestamp, missing_rate
+            )  # existing 5% missing by default
+            count += 1
+            current_timestamp += int(interval)
             print(f"Generated {count}th row data: {row}")
 
-            message = json.dumps(row)
-            producer.send(topic=topic, value=message)
+            # Send the dictionary directly - the serializer will handle JSON encoding
+            producer.send(topic=topic, value=row)
             producer.flush()  # make sure message has been sent
             print(f"{count}th Row data sent")
+
             time.sleep(interval) # produce a new data every specific seconds
+
     except Exception as e:
         print(e)
+
 
 if __name__ == "__main__":
     kafka_topic = cfg.KAFKA_TOPIC_SMOKE

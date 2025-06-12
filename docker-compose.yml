@@ -28,6 +28,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_CREATE_TOPICS: ${KAFKA_TOPIC_SMOKE}:1:1   # topic: partitions: replicas
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # 1 partition and 1 relica by default; need to set it false later
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:${KAFKA_PORT} --list"]
       interval: 10s
@@ -215,12 +220,14 @@ services:
     depends_on:
       - postgres  
     environment:
+      AIRFLOW_HOME: /opt/airflow
       AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
       AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'True'
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:${POSTGRES_PORT}/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:${POSTGRES_PORT}/airflow
       AIRFLOW__WEBSERVER__WEB_SERVER_PORT: 8080
+      AIRFLOW__WEBSERVER__SECRET_KEY: dfba7365e127f6a1cb12d29bed3afb25da372b081a22aa091147f39a1acb
       AIRFLOW_UID: 50000
       AIRFLOW_GID: 50000
     ports:
@@ -268,6 +275,19 @@ services:
       - '--storage.tsdb.retention.size=5GB'     # Maximum storage size
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+
+  metrics_simulator:
+    build:
+      context: .
+      dockerfile: monitoring/Dockerfile.metrics
+    container_name: metrics_simulator
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./monitoring:/app/monitoring
+    environment:
+      - PYTHONPATH=/app
     restart: unless-stopped
 
   grafana:

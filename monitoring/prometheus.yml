@@ -8,6 +8,11 @@ scrape_configs:
       - targets: ['metrics_simulator:8000']
     metrics_path: '/metrics'
 
+  - job_name: 'flask-api-metrics'
+    static_configs:
+      - targets: ['flask_api:5000']
+    metrics_path: '/metrics'
+
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
