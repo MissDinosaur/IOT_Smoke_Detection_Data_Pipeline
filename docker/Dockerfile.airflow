@@ -8,10 +8,10 @@ RUN apt-get update && apt-get install -y gcc g++ build-essential && rm -rf /var/
 USER airflow
 
 # Copy Airflow-specific requirements (excluding problematic dependencies)
-COPY requirements_airflow.txt /tmp/requirements_airflow.txt
+COPY requirements.txt /tmp/requirements.txt
 
 # Install core dependencies needed for ML workflows
-RUN pip install --no-cache-dir -r /tmp/requirements_airflow.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Copy Airflow configuration
 COPY airflow.cfg /opt/airflow/airflow.cfg
