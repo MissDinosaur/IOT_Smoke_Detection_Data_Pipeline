@@ -2,11 +2,11 @@ import os
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError, NoBrokersAvailable
 from app.utils.path_utils import DATA_DIR, build_relative_path
-from config.constants import NULL_MARKER, GROUP_ID, HISTORICAL_DATA_FILE
+from config.constants import NULL_MARKER, GROUP_ID, HISTORICAL_DATA_FILE_PREFIX
 from config.env_config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC_SMOKE
 from data_processing import utils
 from data_processing.stream_processing.metrics_streaming import (
@@ -239,7 +239,11 @@ def consume_streaming_data(topic, output_csv, group_id):
 
 
 if __name__ == "__main__":
-    historical_data_file_path = build_relative_path(DATA_DIR, HISTORICAL_DATA_FILE)
+    today = datetime.now()
+    yesterday = today - timedelta(days=1)
+    yesterday_str = yesterday.date().strftime("%Y-%m-%d")
+    HISTORICAL_DATA_FILE_NAME = HISTORICAL_DATA_FILE_PREFIX + "_" + yesterday_str + ".csv"
+    historical_data_file_path = build_relative_path(DATA_DIR, HISTORICAL_DATA_FILE_NAME)
     print(f"historical_data_file_path: {historical_data_file_path}")
     consume_streaming_data(
         KAFKA_TOPIC_SMOKE, historical_data_file_path, group_id=GROUP_ID

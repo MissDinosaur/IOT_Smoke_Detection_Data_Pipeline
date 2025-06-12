@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from google.cloud import bigquery
+#from google.cloud import bigquery
 from config.constants import PROCESSED_HISTORICAL_FILE_PREFIX
 from datetime import datetime, timedelta
 from config.constants import PROCESSED_HISTORICAL_FILE_PREFIX
