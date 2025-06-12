@@ -38,11 +38,11 @@ mypy>=1.5.0
 coverage[toml]>=7.2.0
 
 # Documentation testing
-doctest>=2.7
+# doctest  # Built-in Python module, no need to install
 
 # Kafka testing (if needed)
 kafka-python>=2.0.2
-confluent-kafka>=2.2.0
+# confluent-kafka>=2.2.0  # Optional, can cause conflicts
 
 # ML testing utilities
 scikit-learn>=1.3.0
@@ -54,14 +54,14 @@ flask>=2.3.0
 requests>=2.31.0
 
 # Stream processing testing
-pyspark>=3.4.0  # Optional, for Spark testing
+# pyspark>=3.4.0  # Optional, for Spark testing - commented out due to size
 
 # Jupyter notebook testing
 nbval>=0.10.0  # For testing notebooks
 
 # Database testing (if needed)
 sqlalchemy>=2.0.0
-sqlite3  # Built-in, but listed for clarity
+# sqlite3  # Built-in Python module, no need to install
 
 # Environment and configuration testing
 python-dotenv>=1.0.0
@@ -74,13 +74,13 @@ structlog>=23.1.0
 python-dateutil>=2.8.2
 
 # File system testing
-pathlib2>=2.3.7  # For Python < 3.4 compatibility
+# pathlib2>=2.3.7  # Not needed for Python 3.10+
 
 # Network testing
 httpretty>=1.1.4
 
 # Parallel testing
-pytest-parallel>=0.1.1
+# pytest-parallel>=0.1.1  # Can conflict with pytest-xdist
 
 # Test data generation
 faker>=19.3.0

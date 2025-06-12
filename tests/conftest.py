@@ -15,13 +15,35 @@ import numpy as np
 import tempfile
 import pickle
 import json
+import time
+import requests
+import os
 from pathlib import Path
 from unittest.mock import Mock, patch
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 
+# Streaming-specific imports (with error handling)
+try:
+    from kafka import KafkaProducer, KafkaConsumer
+    from kafka.errors import KafkaError
+
+    KAFKA_AVAILABLE = True
+except ImportError:
+    KAFKA_AVAILABLE = False
+
 # Test configuration
 pytest_plugins = []
+
+# Streaming test configuration
+STREAMING_CONFIG = {
+    "kafka_bootstrap_servers": os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
+    "kafka_topic": os.getenv("KAFKA_TOPIC", "smoke_detection"),
+    "flask_api_url": os.getenv("FLASK_API_URL", "http://localhost:5000"),
+    "spark_ui_url": os.getenv("SPARK_UI_URL", "http://localhost:4040"),
+    "test_timeout": int(os.getenv("TEST_TIMEOUT", "30")),
+    "max_retries": int(os.getenv("MAX_RETRIES", "3")),
+}
 
 
 @pytest.fixture(scope="session")
@@ -49,7 +71,7 @@ def sample_sensor_data():
         "NC1.0": 800,
         "NC2.5": 150,
         "CNT": 50,
-        "Fire Alarm": 0
+        "Fire Alarm": 0,
     }
 
 
@@ -70,7 +92,7 @@ def fire_scenario_data():
         "NC1.0": 3500,
         "NC2.5": 800,
         "CNT": 200,
-        "Fire Alarm": 1
+        "Fire Alarm": 1,
     }
 
 
@@ -79,23 +101,25 @@ def sample_dataframe():
     """Generate sample DataFrame for testing."""
     np.random.seed(42)
     n_samples = 100
-    
-    return pd.DataFrame({
-        "Temperature[C]": np.random.normal(25, 10, n_samples),
-        "Humidity[%]": np.random.normal(50, 15, n_samples),
-        "TVOC[ppb]": np.random.normal(200, 100, n_samples),
-        "eCO2[ppm]": np.random.normal(500, 150, n_samples),
-        "Raw H2": np.random.normal(15000, 5000, n_samples),
-        "Raw Ethanol": np.random.normal(20000, 7000, n_samples),
-        "Pressure[hPa]": np.random.normal(1013, 10, n_samples),
-        "PM1.0": np.random.normal(8, 3, n_samples),
-        "PM2.5": np.random.normal(12, 5, n_samples),
-        "NC0.5": np.random.normal(1500, 500, n_samples),
-        "NC1.0": np.random.normal(1000, 300, n_samples),
-        "NC2.5": np.random.normal(200, 100, n_samples),
-        "CNT": np.random.randint(0, 100, n_samples),
-        "Fire Alarm": np.random.randint(0, 2, n_samples)
-    })
+
+    return pd.DataFrame(
+        {
+            "Temperature[C]": np.random.normal(25, 10, n_samples),
+            "Humidity[%]": np.random.normal(50, 15, n_samples),
+            "TVOC[ppb]": np.random.normal(200, 100, n_samples),
+            "eCO2[ppm]": np.random.normal(500, 150, n_samples),
+            "Raw H2": np.random.normal(15000, 5000, n_samples),
+            "Raw Ethanol": np.random.normal(20000, 7000, n_samples),
+            "Pressure[hPa]": np.random.normal(1013, 10, n_samples),
+            "PM1.0": np.random.normal(8, 3, n_samples),
+            "PM2.5": np.random.normal(12, 5, n_samples),
+            "NC0.5": np.random.normal(1500, 500, n_samples),
+            "NC1.0": np.random.normal(1000, 300, n_samples),
+            "NC2.5": np.random.normal(200, 100, n_samples),
+            "CNT": np.random.randint(0, 100, n_samples),
+            "Fire Alarm": np.random.randint(0, 2, n_samples),
+        }
+    )
 
 
 @pytest.fixture
@@ -103,14 +127,14 @@ def trained_model():
     """Create a trained model for testing."""
     np.random.seed(42)
     model = RandomForestClassifier(n_estimators=10, random_state=42)
-    
+
     # Generate training data
     X = np.random.randn(100, 13)
     y = np.random.randint(0, 2, 100)
-    
+
     # Train the model
     model.fit(X, y)
-    
+
     return model
 
 
@@ -119,13 +143,13 @@ def trained_scaler():
     """Create a trained scaler for testing."""
     np.random.seed(42)
     scaler = StandardScaler()
-    
+
     # Generate training data
     X = np.random.randn(100, 13)
-    
+
     # Fit the scaler
     scaler.fit(X)
-    
+
     return scaler
 
 
@@ -133,9 +157,19 @@ def trained_scaler():
 def feature_columns():
     """Standard feature columns for testing."""
     return [
-        "Temperature[C]", "Humidity[%]", "TVOC[ppb]", "eCO2[ppm]",
-        "Raw H2", "Raw Ethanol", "Pressure[hPa]", "PM1.0", "PM2.5",
-        "NC0.5", "NC1.0", "NC2.5", "CNT"
+        "Temperature[C]",
+        "Humidity[%]",
+        "TVOC[ppb]",
+        "eCO2[ppm]",
+        "Raw H2",
+        "Raw Ethanol",
+        "Pressure[hPa]",
+        "PM1.0",
+        "PM2.5",
+        "NC0.5",
+        "NC1.0",
+        "NC2.5",
+        "CNT",
     ]
 
 
@@ -150,16 +184,16 @@ def model_file(trained_model, trained_scaler, feature_columns, test_data_dir):
             "model_type": "RandomForestClassifier",
             "training_date": "2024-01-01",
             "version": "1.0",
-            "accuracy": 0.95
-        }
+            "accuracy": 0.95,
+        },
     }
-    
+
     model_path = test_data_dir / "test_model.pkl"
-    with open(model_path, 'wb') as f:
+    with open(model_path, "wb") as f:
         pickle.dump(model_data, f)
-    
+
     yield str(model_path)
-    
+
     # Cleanup
     if model_path.exists():
         model_path.unlink()
@@ -170,9 +204,9 @@ def csv_data_file(sample_dataframe, test_data_dir):
     """Create a temporary CSV data file for testing."""
     csv_path = test_data_dir / "test_data.csv"
     sample_dataframe.to_csv(csv_path, index=False)
-    
+
     yield str(csv_path)
-    
+
     # Cleanup
     if csv_path.exists():
         csv_path.unlink()
@@ -187,7 +221,7 @@ def invalid_sensor_data():
         "TVOC[ppb]": None,
         "eCO2[ppm]": "not_a_number",
         "Raw H2": -1000,  # Negative value
-        "Fire Alarm": "invalid_alarm"
+        "Fire Alarm": "invalid_alarm",
     }
 
 
@@ -196,19 +230,19 @@ def outlier_sensor_data():
     """Generate sensor data with extreme outliers for testing."""
     return {
         "Temperature[C]": 200.0,  # Extreme outlier
-        "Humidity[%]": -100.0,    # Extreme outlier
-        "TVOC[ppb]": -500.0,      # Negative outlier
-        "eCO2[ppm]": 10000.0,     # High outlier
-        "Raw H2": -5000,          # Negative outlier
-        "Raw Ethanol": 1000000,   # Extreme high
+        "Humidity[%]": -100.0,  # Extreme outlier
+        "TVOC[ppb]": -500.0,  # Negative outlier
+        "eCO2[ppm]": 10000.0,  # High outlier
+        "Raw H2": -5000,  # Negative outlier
+        "Raw Ethanol": 1000000,  # Extreme high
         "Pressure[hPa]": 2000.0,  # Extreme outlier
-        "PM1.0": -10.0,           # Negative
-        "PM2.5": 500.0,           # Extreme high
-        "NC0.5": -1000,           # Negative
-        "NC1.0": 100000,          # Extreme high
-        "NC2.5": -500,            # Negative
-        "CNT": -100,              # Negative
-        "Fire Alarm": 0
+        "PM1.0": -10.0,  # Negative
+        "PM2.5": 500.0,  # Extreme high
+        "NC0.5": -1000,  # Negative
+        "NC1.0": 100000,  # Extreme high
+        "NC2.5": -500,  # Negative
+        "CNT": -100,  # Negative
+        "Fire Alarm": 0,
     }
 
 
@@ -219,7 +253,7 @@ def batch_sensor_data(sample_sensor_data, fire_scenario_data):
         sample_sensor_data,
         fire_scenario_data,
         {**sample_sensor_data, "Temperature[C]": 30.0},
-        {**fire_scenario_data, "TVOC[ppb]": 2000.0}
+        {**fire_scenario_data, "TVOC[ppb]": 2000.0},
     ]
 
 
@@ -247,8 +281,9 @@ def mock_kafka_producer():
 def streaming_data_batch():
     """Generate a batch of streaming data for testing."""
     import time
+
     current_time = time.time()
-    
+
     return [
         {
             "Temperature[C]": 25.0 + i,
@@ -265,7 +300,7 @@ def streaming_data_batch():
             "NC2.5": 150 + i * 10,
             "CNT": 50 + i,
             "Fire Alarm": 1 if i > 5 else 0,
-            "timestamp": current_time + i
+            "timestamp": current_time + i,
         }
         for i in range(10)
     ]
@@ -274,12 +309,10 @@ def streaming_data_batch():
 # Test utilities
 class TestDataGenerator:
     """Utility class for generating test data."""
-    
+
     @staticmethod
     def generate_sensor_reading(
-        temperature_range=(20, 30),
-        humidity_range=(40, 60),
-        fire_alarm=0
+        temperature_range=(20, 30), humidity_range=(40, 60), fire_alarm=0
     ):
         """Generate a single sensor reading with specified ranges."""
         return {
@@ -296,28 +329,25 @@ class TestDataGenerator:
             "NC1.0": np.random.randint(700, 1300),
             "NC2.5": np.random.randint(100, 300),
             "CNT": np.random.randint(30, 80),
-            "Fire Alarm": fire_alarm
+            "Fire Alarm": fire_alarm,
         }
-    
+
     @staticmethod
-    def generate_time_series(
-        length=100,
-        fire_events=None
-    ):
+    def generate_time_series(length=100, fire_events=None):
         """Generate time series sensor data."""
         if fire_events is None:
             fire_events = []
-        
+
         data = []
         for i in range(length):
             fire_alarm = 1 if i in fire_events else 0
-            
+
             if fire_alarm:
                 # Fire conditions: high temp, low humidity, high TVOC
                 reading = TestDataGenerator.generate_sensor_reading(
                     temperature_range=(50, 80),
                     humidity_range=(10, 30),
-                    fire_alarm=fire_alarm
+                    fire_alarm=fire_alarm,
                 )
                 reading["TVOC[ppb]"] = np.random.uniform(1000, 2000)
                 reading["PM2.5"] = np.random.uniform(30, 80)
@@ -326,10 +356,10 @@ class TestDataGenerator:
                 reading = TestDataGenerator.generate_sensor_reading(
                     fire_alarm=fire_alarm
                 )
-            
+
             reading["timestamp"] = i
             data.append(reading)
-        
+
         return data
 
 
@@ -339,17 +369,21 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "unit: marks tests as unit tests"
-    )
-    config.addinivalue_line(
-        "markers", "ml: marks tests related to machine learning"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")
+    config.addinivalue_line("markers", "ml: marks tests related to machine learning")
     config.addinivalue_line(
         "markers", "stream: marks tests related to stream processing"
+    )
+    config.addinivalue_line("markers", "kafka: marks tests requiring Kafka")
+    config.addinivalue_line("markers", "api: marks tests requiring Flask API")
+    config.addinivalue_line("markers", "spark: marks tests requiring Spark")
+    config.addinivalue_line("markers", "performance: marks tests as performance tests")
+    config.addinivalue_line(
+        "markers", "ml_integration: marks tests as ML integration tests"
+    )
+    config.addinivalue_line(
+        "markers", "ml_performance: marks tests as ML performance tests"
     )
 
 
@@ -360,15 +394,123 @@ def pytest_collection_modifyitems(config, items):
         # Add markers based on test file location
         if "test_training" in str(item.fspath) or "test_inference" in str(item.fspath):
             item.add_marker(pytest.mark.ml)
-        
+
         if "stream_processing" in str(item.fspath):
             item.add_marker(pytest.mark.stream)
-        
+
         # Mark slow tests
         if "test_complete_training_pipeline" in item.name:
             item.add_marker(pytest.mark.slow)
-        
+
         if "integration" in item.name.lower():
             item.add_marker(pytest.mark.integration)
         else:
             item.add_marker(pytest.mark.unit)
+
+
+# Streaming-specific fixtures
+@pytest.fixture(scope="session")
+def kafka_available():
+    """Check if Kafka is available for testing."""
+    if not KAFKA_AVAILABLE:
+        return False
+
+    try:
+        producer = KafkaProducer(
+            bootstrap_servers=STREAMING_CONFIG["kafka_bootstrap_servers"],
+            request_timeout_ms=5000,
+        )
+        producer.close()
+        return True
+    except Exception:
+        return False
+
+
+@pytest.fixture(scope="session")
+def flask_api_available():
+    """Check if Flask API is available for testing."""
+    try:
+        response = requests.get(
+            f"{STREAMING_CONFIG['flask_api_url']}/health", timeout=5
+        )
+        return response.status_code == 200
+    except Exception:
+        return False
+
+
+@pytest.fixture
+def kafka_producer_client(kafka_available):
+    """Create a Kafka producer for testing."""
+    if not kafka_available:
+        pytest.skip("Kafka not available")
+
+    try:
+        producer = KafkaProducer(
+            bootstrap_servers=STREAMING_CONFIG["kafka_bootstrap_servers"],
+            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+            key_serializer=lambda k: k.encode("utf-8") if k else None,
+            acks="all",
+            retries=3,
+            request_timeout_ms=10000,
+        )
+        yield producer
+        producer.close()
+    except Exception as e:
+        pytest.skip(f"Failed to create Kafka producer: {e}")
+
+
+@pytest.fixture
+def kafka_consumer_client(kafka_available):
+    """Create a Kafka consumer for testing."""
+    if not kafka_available:
+        pytest.skip("Kafka not available")
+
+    try:
+        consumer = KafkaConsumer(
+            STREAMING_CONFIG["kafka_topic"],
+            bootstrap_servers=STREAMING_CONFIG["kafka_bootstrap_servers"],
+            value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+            key_deserializer=lambda k: k.decode("utf-8") if k else None,
+            auto_offset_reset="latest",
+            enable_auto_commit=True,
+            group_id=f"test_consumer_{int(time.time())}",
+            consumer_timeout_ms=10000,
+        )
+        yield consumer
+        consumer.close()
+    except Exception as e:
+        pytest.skip(f"Failed to create Kafka consumer: {e}")
+
+
+@pytest.fixture
+def api_client(flask_api_available):
+    """Create an API client for testing."""
+    if not flask_api_available:
+        pytest.skip("Flask API not available")
+
+    class APIClient:
+        def __init__(self, base_url):
+            self.base_url = base_url
+            self.session = requests.Session()
+            self.session.headers.update({"Content-Type": "application/json"})
+
+        def get(self, endpoint, **kwargs):
+            return self.session.get(f"{self.base_url}{endpoint}", **kwargs)
+
+        def post(self, endpoint, data=None, **kwargs):
+            return self.session.post(f"{self.base_url}{endpoint}", json=data, **kwargs)
+
+        def health_check(self):
+            try:
+                response = self.get("/health", timeout=5)
+                return response.status_code == 200
+            except Exception:
+                return False
+
+        def predict(self, sensor_data, timeout=10):
+            return self.post("/predict", data=sensor_data, timeout=timeout)
+
+        def predict_batch(self, batch_data, timeout=15):
+            return self.post("/predict/batch", data=batch_data, timeout=timeout)
+
+    return APIClient(STREAMING_CONFIG["flask_api_url"])

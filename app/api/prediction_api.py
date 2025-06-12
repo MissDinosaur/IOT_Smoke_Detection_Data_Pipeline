@@ -925,8 +925,8 @@ if __name__ == "__main__":
 
     # Override model path if provided
     if args.model_path:
-        global MODEL_PATH
-        MODEL_PATH = args.model_path
+        # Update the global MODEL_PATH variable
+        globals()["MODEL_PATH"] = args.model_path
 
     # Create app
     app = create_app()

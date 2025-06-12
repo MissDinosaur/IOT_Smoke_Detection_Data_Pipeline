@@ -718,7 +718,15 @@ def train_smoke_detection_model(
         trainer.create_visualizations(results, y_test)
 
         # Save best model
-        model_path = trainer.save_model()
+        # Save with timestamp for versioning
+        timestamped_model_path = trainer.save_model()
+
+        # Also save to the expected location for Flask API
+        expected_model_path = MODEL_PATH
+        trainer.save_model(model_path=expected_model_path)
+
+        logger.info(f"Model saved to expected path: {expected_model_path}")
+        model_path = expected_model_path
 
         # Print final results
         logger.info("\n" + "=" * 50)

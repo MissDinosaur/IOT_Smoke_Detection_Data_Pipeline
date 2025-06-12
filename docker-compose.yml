@@ -102,7 +102,7 @@ services:
     depends_on:
       - ml_trainer
     environment:
-      MODEL_PATH: "/app/ml/models/best_model.pkl"
+      MODEL_PATH: "/app/models/smoke_detection_model.pkl"
       MODEL_RELOAD_INTERVAL: "3600"
       PYTHONPATH: /app
       FLASK_ENV: production
@@ -112,18 +112,14 @@ services:
       - ./config:/app/config
       - ./app:/app/app
       - ml_models:/app/ml/models
+      - ml_models:/app/models  # Also mount to expected model path
       - ml_logs:/app/logs
     ports:
       - "5000:5000"  # Flask API
     command: >
       sh -c "
-        echo 'Waiting for ML model to be generated...' &&
-        while [ ! -f /app/ml/models/best_model.pkl ]; do
-          echo 'Waiting for model file...' &&
-          sleep 10
-        done &&
-        echo 'Model found, starting Flask API...' &&
-        python -m app.api.prediction_api --host 0.0.0.0 --port 5000
+        echo 'Starting Flask API with model management...' &&
+        python /app/app/start_api.py --wait-for-model --max-wait-minutes 30 --create-placeholder
       "
     restart: unless-stopped
     healthcheck:
