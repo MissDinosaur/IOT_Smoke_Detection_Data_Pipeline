@@ -1,0 +1,6 @@
+# Ignore large model files
+*.pkl
+
+# Keep directory structure
+!.gitkeep
+!README.md

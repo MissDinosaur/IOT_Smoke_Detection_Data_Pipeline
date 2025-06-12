@@ -18,8 +18,9 @@ import sys
 import time
 import schedule
 import logging
+import shutil
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 # Add project root to path
@@ -47,13 +48,20 @@ class AutoMLTrainer:
     def __init__(self):
         self.data_path = "/app/data/smoke_detection_iot.csv"
         self.models_dir = Path("/app/ml/models")
+        self.shared_models_dir = Path("/app/models")  # Shared with other containers
         self.models_dir.mkdir(parents=True, exist_ok=True)
+        self.shared_models_dir.mkdir(parents=True, exist_ok=True)
+
+        # Configuration from environment
         self.training_interval_hours = int(
             os.getenv("ML_TRAINING_INTERVAL_HOURS", "24")
         )
+        self.retrain_hour = int(os.getenv("ML_RETRAIN_HOUR", "2"))  # 2 AM default
         self.auto_train_on_startup = (
             os.getenv("ML_AUTO_TRAIN_ON_STARTUP", "true").lower() == "true"
         )
+        self.save_local = os.getenv("MODEL_SAVE_LOCAL", "true").lower() == "true"
+        self.save_shared = os.getenv("MODEL_SAVE_SHARED", "true").lower() == "true"
 
     def check_data_availability(self) -> bool:
         """Check if training data is available."""
@@ -94,6 +102,7 @@ class AutoMLTrainer:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             model_path = self.models_dir / f"model_{timestamp}.pkl"
             best_model_path = self.models_dir / "best_model.pkl"
+            shared_model_path = self.shared_models_dir / "smoke_detection_model.pkl"
 
             # Save timestamped version
             trainer.save_model(str(model_path))
@@ -102,6 +111,26 @@ class AutoMLTrainer:
             # Save as best model (for production use)
             trainer.save_model(str(best_model_path))
             logger.info(f"✅ Best model updated: {best_model_path}")
+
+            # Copy to shared location for other containers
+            if self.save_shared:
+                try:
+                    shutil.copy2(best_model_path, shared_model_path)
+                    logger.info(
+                        f"✅ Model copied to shared location: {shared_model_path}"
+                    )
+                except Exception as e:
+                    logger.error(f"❌ Failed to copy model to shared location: {e}")
+
+            # Copy to local host directory (if mounted)
+            if self.save_local:
+                try:
+                    local_model_path = Path("/app/models") / "smoke_detection_model.pkl"
+                    if local_model_path.parent.exists():
+                        shutil.copy2(best_model_path, local_model_path)
+                        logger.info(f"✅ Model saved locally: {local_model_path}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not save model locally: {e}")
 
             # Log training results
             best_model_info = results.get("best_model", {})
@@ -149,11 +178,17 @@ class AutoMLTrainer:
         return exists
 
     def schedule_training(self):
-        """Schedule periodic model retraining."""
-        logger.info(
-            f"📅 Scheduling model retraining every {self.training_interval_hours} hours"
-        )
-        schedule.every(self.training_interval_hours).hours.do(self.train_model)
+        """Schedule daily model retraining at specified hour."""
+        retrain_time = f"{self.retrain_hour:02d}:00"
+        logger.info(f"📅 Scheduling daily model retraining at {retrain_time}")
+        schedule.every().day.at(retrain_time).do(self.train_model)
+
+        # Also schedule based on interval for backward compatibility
+        if self.training_interval_hours != 24:
+            logger.info(
+                f"📅 Also scheduling retraining every {self.training_interval_hours} hours"
+            )
+            schedule.every(self.training_interval_hours).hours.do(self.train_model)
 
     def run(self):
         """Main training service loop."""

@@ -74,7 +74,7 @@ services:
            python data_processing/stream_processing/transform_and_save_stream.py"
     restart: unless-stopped
 
-  # ML Training Service - Automatically trains models and generates pickle files
+  # ML Training Service - Primary model trainer with daily retraining
   ml_trainer:
     build:
       context: .
@@ -83,15 +83,38 @@ services:
     environment:
       ML_AUTO_TRAIN_ON_STARTUP: "true"
       ML_TRAINING_INTERVAL_HOURS: "24"
+      ML_RETRAIN_HOUR: "02"  # Retrain at 2 AM daily
+      MODEL_SAVE_LOCAL: "true"
+      MODEL_SAVE_SHARED: "true"
       PYTHONPATH: /app
     volumes:
       - ./data:/app/data
       - ./ml:/app/ml
       - ./config:/app/config
       - ./app:/app/app
-      - ml_models:/app/ml/models
+      - ./models:/app/models  # Local models directory for host access
+      - ml_models:/app/ml/models  # Shared models volume
       - ml_logs:/app/logs
+    command: >
+      sh -c "
+        echo '🚀 Starting ML Training Pipeline...' &&
+        echo '📊 Training initial model (this may take 30-60 minutes)...' &&
+        python ml/training/initial_model_generator.py &&
+        echo '✅ Initial model training completed.' &&
+        echo '📁 Copying model to shared locations...' &&
+        mkdir -p /app/models &&
+        cp /app/ml/models/best_model.pkl /app/models/smoke_detection_model.pkl &&
+        echo '✅ Model available for other containers at /app/models/smoke_detection_model.pkl' &&
+        echo '🔄 Starting daily auto-trainer with retraining at 2 AM...' &&
+        python ml/training/auto_trainer.py
+      "
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "test", "-f", "/app/models/smoke_detection_model.pkl"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 3600s  # Wait 60 minutes for initial training
 
   # Flask API Backend - Central API layer for predictions and system interaction
   flask_api:
@@ -100,7 +123,8 @@ services:
       dockerfile: docker/Dockerfile.api
     container_name: flask_api
     depends_on:
-      - ml_trainer
+      ml_trainer:
+        condition: service_healthy
     environment:
       MODEL_PATH: "/app/models/smoke_detection_model.pkl"
       MODEL_RELOAD_INTERVAL: "3600"
@@ -111,8 +135,8 @@ services:
       - ./ml:/app/ml
       - ./config:/app/config
       - ./app:/app/app
-      - ml_models:/app/ml/models
-      - ml_models:/app/models  # Also mount to expected model path
+      - ./models:/app/models  # Local models directory
+      - ml_models:/app/ml/models  # Shared models volume
       - ml_logs:/app/logs
     ports:
       - "5000:5000"  # Flask API
