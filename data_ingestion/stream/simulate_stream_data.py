@@ -4,7 +4,9 @@ import random
 
 
 def generate_random_row(schema: dict, current_timestamp: int, missing_rate: float =0.05) -> dict:
-    """Generate synthetic data according to the schema of the original Kaggle smoke data"""
+    """Generate synthetic data according to the schema of the original Kaggle smoke data. 
+        And there exist missing values in the data with the specific rate.
+    """
     row = {}
     for col, info in schema.items():
         if random.random() < missing_rate:

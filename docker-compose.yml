@@ -195,6 +195,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 120s
+
   postgres:
     image: postgres:15
     environment:
@@ -227,6 +228,7 @@ services:
     volumes:
       - ./data_processing/batch_processing/dags:/opt/airflow/dags
       - ./data_processing/batch_processing/tasks:/opt/airflow/tasks
+      - ./data_processing/batch_processing:/opt/airflow/data_processing/batch_processing
       - ./data:/opt/airflow/data
       - ./app:/opt/airflow/app
       - ./config:/opt/airflow/config

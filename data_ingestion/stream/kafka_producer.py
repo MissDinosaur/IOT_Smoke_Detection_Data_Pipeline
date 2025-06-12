@@ -17,13 +17,14 @@ from data_ingestion import utils
 import simulate_stream_data as sim
 
 
-def clean_bytes(data: dict):
-    return {
-        k: (v.decode('utf-8', errors='replace') if isinstance(v, bytes) else v)
-        for k, v in data.items()
-    }
 
 def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPIC_SMOKE):
+    """
+    Generate and sent synthetic data by Kafka every 2 senconds
+    missing_rate: The rate of exisiting NULL values
+    interval: The interval of generating data
+    topic: Kafka topic
+    """
     try:
         while True:
             try:
@@ -52,7 +53,6 @@ def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPI
             producer.send(topic=topic, value=message)
             producer.flush()  # make sure message has been sent
             print(f"{count}th Row data sent")
-            
             time.sleep(interval) # produce a new data every specific seconds
     except Exception as e:
         print(e)
@@ -61,4 +61,4 @@ if __name__ == "__main__":
     kafka_topic = cfg.KAFKA_TOPIC_SMOKE
     print(f"kafka_topic: {kafka_topic}")
     print(f"cfg.KAFKA_BOOTSTRAP_SERVERS: {cfg.KAFKA_BOOTSTRAP_SERVERS}")
-    kafka_produce_and_send_data(missing_rate=0.05, interval=2.0, topic=kafka_topic)
+    kafka_produce_and_send_data(missing_rate=0.05, interval=0.5, topic=kafka_topic)

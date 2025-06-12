@@ -1,20 +1,22 @@
-# batch_processing/tasks/feature_engineering.py
-from config.constants import CLEANED_DATA_FILE
-from app.utils.path_utils import DATA_DIR, build_relative_path
-from data_ingestion.batch import batch_loader as bl
+import os
+import pandas as pd
+from sklearn.preprocessing import Normalizer
 
-cleaned_data_file_path = build_relative_path(DATA_DIR, CLEANED_DATA_FILE)
+TMP_DIR = '/tmp/airflow_smoke_pipeline'
 
-def run_feature_engineering():
-    df = bl.load_csv_data()
+def feature_engineering(**kwargs):
+    cleaned_path = kwargs['ti'].xcom_pull(key='cleaned_path')
+    df = pd.read_csv(cleaned_path)
 
-    # Clean：remove missing value or anomoly
-    df.dropna(inplace=True)
-    df = df[df["Temperature[C]"] > -40]
+    # Create rwo new features
+    df['Temp_Humidity_Product'] = df['Temperature[C]'] * df['Humidity[%]']
+    df['PM_sum'] = df['PM1.0'] + df['PM2.5']
 
-    # Create a new feature
-    df["Temp_Humidity_Ratio"] = df["Temperature[C]"] / (df["Humidity[%]"] + 1e-5)
+    # Normalize columns except UTC and target 'Fire Alarm'
+    cols_to_normalize = df.columns.drop(['UTC', 'Fire Alarm', 'datetime', 'hour', 'day_of_week'])
+    scaler = Normalizer()
+    df[cols_to_normalize] = scaler.fit_transform(df[cols_to_normalize])
 
-    # Save data after data featuring 
-    df.to_csv(cleaned_data_file_path, index=False)  # mode="w" bu default
-    print(f"[INFO] Feature-engineered data saved to {cleaned_data_file_path}")
+    features_path = os.path.join(TMP_DIR, 'features.csv')
+    df.to_csv(features_path, index=False)
+    kwargs['ti'].xcom_push(key='features_path', value=features_path)
