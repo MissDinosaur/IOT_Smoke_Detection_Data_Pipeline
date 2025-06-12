@@ -1,0 +1,12 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install prometheus client
+RUN pip install prometheus_client
+
+# Copy only the necessary files
+COPY metrics.py .
+COPY simulate_metrics.py .
+
+CMD ["python", "simulate_metrics.py"] 
