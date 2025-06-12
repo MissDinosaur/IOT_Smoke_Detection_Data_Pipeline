@@ -3,11 +3,7 @@ FROM apache/airflow:2.7.1-python3.10
 
 # Install system dependencies for compilation
 USER root
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y gcc g++ build-essential && rm -rf /var/lib/apt/lists/*
 
 USER airflow
 
@@ -16,6 +12,9 @@ COPY requirements_airflow.txt /tmp/requirements_airflow.txt
 
 # Install core dependencies needed for ML workflows
 RUN pip install --no-cache-dir -r /tmp/requirements_airflow.txt
+
+# Copy Airflow configuration
+COPY airflow.cfg /opt/airflow/airflow.cfg
 
 # Copy dags and tasks are mounted via volumes in docker-compose, no need to copy here
 

@@ -1,37 +1,145 @@
-# IoT Smoke Detection Pipeline - Complete Requirements
-# Python version 3.10.xx
+# 🔥 IoT Smoke Detection Data Pipeline - Unified Requirements
+# Install with: pip install -r requirements.txt
+# Python version: >=3.10
 
-# Core data processing
-numpy==1.24.3
-pandas==2.0.3
-pyarrow==12.0.1
-scipy==1.10.1
+# ================================
+# CORE DEPENDENCIES
+# ================================
 
-# Machine Learning
-scikit-learn==1.3.2
-joblib==1.3.2
+# Data Science & Machine Learning
+numpy>=1.24.3
+pandas>=2.0.3
+scikit-learn>=1.3.2
+scipy>=1.10.1
+joblib>=1.3.2
 
-# Configuration and utilities
-python-dotenv==1.0.0
-pyyaml==6.0.1
-python-dateutil==2.9.0.post0
-watchdog==4.0.0
+# Web Framework & API
+flask>=2.2.5
+flask-cors>=3.0.10
+werkzeug>=2.2.3
+gunicorn>=20.1.0
+requests>=2.31.0
 
-# Streaming and messaging
-kafka-python==2.0.2
-pyspark==3.4.1
-py4j==0.10.9.7
+# Streaming & Messaging
+kafka-python>=2.0.2
+pyspark>=3.4.1
+py4j>=0.10.9.7
 
-# Visualization
-matplotlib==3.6.3
-seaborn==0.12.2
+# Database & ORM
+sqlalchemy==1.4.48
+psycopg2-binary>=2.9.7
+alembic>=1.12.0
 
-# Web framework (Flask API)
-werkzeug==2.2.3
-flask==2.2.5
-flask-cors==3.0.10
-gunicorn==20.1.0
-requests==2.31.0
+# Configuration & Environment
+python-dotenv>=1.0.0
+pyyaml>=6.0.1
+python-dateutil>=2.9.0
+watchdog>=4.0.0
+pydantic>=2.0.0
+configparser>=5.3.0
+
+# Monitoring & Metrics
+prometheus-client>=0.17.1
+structlog>=23.1.0
+loguru>=0.7.0
+
+# Utilities & Performance
+pyarrow>=12.0.1
+psutil>=5.9.5
+memory-profiler>=0.61.0
+click>=8.1.0
+pytz>=2023.3
+
+# Data Validation
+marshmallow>=3.20.0
+cerberus>=1.3.4
+jsonschema>=4.19.0
+
+# Visualization (Optional)
+matplotlib>=3.6.3
+seaborn>=0.12.2
+
+# ================================
+# AIRFLOW DEPENDENCIES
+# ================================
+
+# Airflow Core (for workflow orchestration)
+apache-airflow>=2.7.0
+apache-airflow-providers-postgres>=5.6.0
+apache-airflow-providers-http>=4.5.0
+
+# ================================
+# TESTING DEPENDENCIES
+# ================================
+
+# Core Testing Framework
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.1
+pytest-mock>=3.11.1
+pytest-html>=3.2.0
+pytest-timeout>=2.1.0
+
+# Test Utilities & Mocking
+responses>=0.23.3
+factory-boy>=3.3.0
+freezegun>=1.2.2
+faker>=19.3.0
+
+# Performance Testing
+pytest-benchmark>=4.0.0
+pytest-randomly>=3.12.0
+
+# Code Quality & Linting
+flake8>=6.0.0
+black>=23.7.0
+isort>=5.12.0
+mypy>=1.5.0
+
+# Coverage & Reporting
+coverage[toml]>=7.2.0
+
+# ================================
+# DEVELOPMENT DEPENDENCIES (Optional)
+# ================================
+
+# Jupyter & Notebooks
+jupyter>=1.0.0
+ipykernel>=6.25.0
+
+# Development Tools
+ipython>=8.15.0
+rich>=13.5.0
+tqdm>=4.66.0
+
+# ================================
+# PRODUCTION DEPENDENCIES (Optional)
+# ================================
+
+# Security
+cryptography>=41.0.0
+
+# Caching
+redis>=4.6.0
+
+# Health Checks
+healthcheck>=1.3.3
+
+# ================================
+# INSTALLATION NOTES
+# ================================
+
+# For minimal installation (production):
+# pip install flask pandas scikit-learn kafka-python sqlalchemy prometheus-client
+
+# For development:
+# pip install -r requirements.txt
+
+# For testing only:
+# pip install pytest pytest-cov requests
+
+# For Airflow only:
+# pip install apache-airflow apache-airflow-providers-postgres
 schedule==1.2.0
 
 # Monitoring
@@ -39,7 +147,7 @@ prometheus-client==0.17.1
 
 # Database
 psycopg2-binary==2.9.7
-sqlalchemy==1.4.48
+
 
 # Note: Airflow dependencies moved to requirements_airflow.txt to avoid compilation issues
 # This file contains only the core dependencies needed for ML, API, and stream processing

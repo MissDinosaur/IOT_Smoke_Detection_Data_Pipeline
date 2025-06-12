@@ -6,7 +6,7 @@ WORKDIR /app
 RUN pip install prometheus_client
 
 # Copy only the necessary files
-COPY metrics.py .
-COPY simulate_metrics.py .
+COPY monitoring/metrics.py .
+COPY monitoring/simulate_metrics.py .
 
 CMD ["python", "simulate_metrics.py"] 

@@ -10,9 +10,7 @@ ENV MPLCONFIGDIR=/tmp/matplotlib
 ENV FONTCONFIG_PATH=/tmp/fontconfig
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -24,10 +22,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install additional ML-specific dependencies
-RUN pip install --no-cache-dir \
-    flask-cors \
-    gunicorn \
-    prometheus-client
+RUN pip install --no-cache-dir flask-cors gunicorn prometheus-client
 
 # Copy application code
 COPY ml/ /app/ml/
