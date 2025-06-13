@@ -88,12 +88,13 @@ def detect_anomalies(data):
     alerts = []
 
     try:
-        temp = float(data.get("Temperature[C]", 0))
-        humidity = float(data.get("Humidity[%]", 0))
-        tvoc = float(data.get("TVOC[ppb]", 0))
-        eco2 = float(data.get("eCO2[ppm]", 0))
-        pm25 = float(data.get("PM2.5", 0))
-        fire_alarm = data.get("Fire Alarm", 0)
+        temp = float(data.get("Temperature[C]") or 0)
+        humidity = float(data.get("Humidity[%]") or 0)
+        tvoc = float(data.get("TVOC[ppb]") or 0)
+        eco2 = float(data.get("eCO2[ppm]") or 0)
+        pm25 = float(data.get("PM2.5") or 0)
+        fire_alarm = data.get("Fire Alarm") or 0
+
 
         # Temperature thresholds
         if temp > 50:
@@ -125,19 +126,19 @@ def detect_anomalies(data):
     return alerts
 
 
-def save_historical_data(row:dict, output_csv_file: str):
-    #columns = get_kaggle_data_headers()
+def save_historical_data(row, output_csv_file: str):
+    columns = utils.get_kaggle_data_headers()
     """Save data into csv file row by row"""
     # If output_csv file doesn't exist or it's empty then it is the first time to write sth into this file
     first_time_flg = (
         not os.path.exists(output_csv_file) or os.path.getsize(output_csv_file) == 0
     )
     with open(output_csv_file, "a", newline='', encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=row.keys())
         # If it is the first time to write sth into this file, then write the header first
         if first_time_flg:
-            writer.writeheader()  # Write header
-        writer.writerow(row)
+            f.write(",".join(columns) + "\n")  # Write header
+        f.write(",".join(row) + "\n")
+        f.flush()  # flush to disk immediately
 
 
 def consume_streaming_data(topic, output_csv, group_id):
@@ -196,6 +197,7 @@ def consume_streaming_data(topic, output_csv, group_id):
                         row.append(str(val))
 
                     save_historical_data(row, output_csv)
+                    print(f"Save the historical data successfully: {row}")
 
                     # Record successful processing
                     processing_time = (
