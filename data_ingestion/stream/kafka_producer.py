@@ -65,4 +65,4 @@ if __name__ == "__main__":
     kafka_topic = cfg.KAFKA_TOPIC_SMOKE
     print(f"kafka_topic: {kafka_topic}")
     print(f"cfg.KAFKA_BOOTSTRAP_SERVERS: {cfg.KAFKA_BOOTSTRAP_SERVERS}")
-    kafka_produce_and_send_data(missing_rate=0.05, interval=0.5, topic=kafka_topic)
+    kafka_produce_and_send_data(missing_rate=0.05, interval=2.0, topic=kafka_topic)
