@@ -24,10 +24,6 @@ def kafka_produce_and_send_data(missing_rate, interval=2.0, topic=cfg.KAFKA_TOPI
     interval: The interval of generating data
     topic: Kafka topic
     """
-def kafka_produce_and_send_data(
-    missing_rate, interval=2.0, topic=cfg.KAFKA_TOPIC_SMOKE
-):
-
     try:
         while True:
             try:
