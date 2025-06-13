@@ -242,11 +242,10 @@ def consume_streaming_data(topic, output_csv, group_id):
 
 if __name__ == "__main__":
     today = datetime.now()
-    yesterday = today - timedelta(days=1)
-    yesterday_str = yesterday.date().strftime("%Y-%m-%d")
-    HISTORICAL_DATA_FILE_NAME = HISTORICAL_DATA_FILE_PREFIX + "_" + yesterday_str + ".csv"
+    date_str = today.date().strftime("%Y-%m-%d")
+    HISTORICAL_DATA_FILE_NAME = HISTORICAL_DATA_FILE_PREFIX + "_" + date_str + ".csv"
     historical_data_file_path = build_relative_path(DATA_DIR, HISTORICAL_DATA_FILE_NAME)
-    print(f"historical_data_file_path: {historical_data_file_path}")
+    print(f"Will save data to this file path: {historical_data_file_path}")
     consume_streaming_data(
         KAFKA_TOPIC_SMOKE, historical_data_file_path, group_id=GROUP_ID
     )
