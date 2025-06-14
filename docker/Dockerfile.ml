@@ -10,16 +10,29 @@ ENV MPLCONFIGDIR=/tmp/matplotlib
 ENV FONTCONFIG_PATH=/tmp/fontconfig
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    gcc \
+    g++ \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first for better caching
-COPY requirements.txt /app/requirements.txt
+# Copy requirements first for better caching (use ultra-minimal)
+COPY requirements_ultra_minimal.txt /app/requirements_ultra_minimal.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install ultra-minimal requirements first
+RUN pip install --no-cache-dir -r requirements_ultra_minimal.txt
+
+# Install additional packages needed for ML (one by one)
+RUN pip install --no-cache-dir scipy==1.10.1
+RUN pip install --no-cache-dir joblib==1.3.2
+RUN pip install --no-cache-dir matplotlib==3.7.2
+RUN pip install --no-cache-dir seaborn==0.12.2
+RUN pip install --no-cache-dir schedule
 
 # Install additional ML-specific dependencies
 RUN pip install --no-cache-dir flask-cors gunicorn prometheus-client

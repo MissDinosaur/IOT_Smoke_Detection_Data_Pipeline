@@ -178,9 +178,16 @@ def load_model_from_pickle(model_path: str = None) -> bool:
 
         logger.info(f"Loading model from {model_path}")
 
-        # Load pickle file
-        with open(model_path, "rb") as f:
-            model_package = pickle.load(f)
+        # Load model file (try joblib first, then pickle)
+        try:
+            import joblib
+            model_package = joblib.load(model_path)
+            logger.info("Model loaded with joblib")
+        except Exception as joblib_error:
+            logger.warning(f"Joblib loading failed: {joblib_error}, trying pickle...")
+            with open(model_path, "rb") as f:
+                model_package = pickle.load(f)
+            logger.info("Model loaded with pickle")
 
         # Extract components
         model_cache["model"] = model_package.get("model")
@@ -243,8 +250,8 @@ def validate_sensor_data(data: Dict[str, Any]) -> Dict[str, Any]:
     missing_fields = [col for col in feature_columns if col not in data]
 
     if missing_fields:
-        validation_result["valid"] = False
-        validation_result["errors"].append(f"Missing required fields: {missing_fields}")
+        validation_result["warnings"].append(f"Missing fields will use defaults: {missing_fields}")
+        # Don't mark as invalid - we can use defaults
 
     # Check data types and ranges
     for key, value in data.items():
@@ -257,11 +264,19 @@ def validate_sensor_data(data: Dict[str, Any]) -> Dict[str, Any]:
                         f"Invalid data type for {key}: {type(value)}"
                     )
                     validation_result["valid"] = False
+            else:
+                # Basic range validation
+                if key == "Temperature" and not (-50 <= value <= 100):
+                    validation_result["warnings"].append(f"Temperature {value} outside typical range (-50 to 100)")
+                elif key == "Humidity" and not (0 <= value <= 100):
+                    validation_result["warnings"].append(f"Humidity {value} outside valid range (0 to 100)")
+                elif key == "Pressure" and not (800 <= value <= 1200):
+                    validation_result["warnings"].append(f"Pressure {value} outside typical range (800 to 1200)")
 
     return validation_result
 
 
-def prepare_features(data: Dict[str, Any]) -> Optional[np.ndarray]:
+def prepare_features(data: Dict[str, Any]) -> Optional[pd.DataFrame]:
     """Prepare features for prediction."""
     try:
         if not ensure_model_loaded():
@@ -269,20 +284,23 @@ def prepare_features(data: Dict[str, Any]) -> Optional[np.ndarray]:
 
         feature_columns = model_cache["feature_columns"]
 
-        # Create feature vector
-        features = []
+        # Create feature vector with proper column names
+        features = {}
         for col in feature_columns:
             value = data.get(col, 0.0)  # Default to 0 if missing
-            features.append(float(value))
+            features[col] = float(value)
 
-        # Convert to numpy array
-        feature_array = np.array(features).reshape(1, -1)
+        # Convert to DataFrame to preserve feature names
+        feature_df = pd.DataFrame([features])
 
         # Apply scaling if available
         if model_cache["scaler"] is not None:
-            feature_array = model_cache["scaler"].transform(feature_array)
+            feature_df = pd.DataFrame(
+                model_cache["scaler"].transform(feature_df),
+                columns=feature_columns
+            )
 
-        return feature_array
+        return feature_df
 
     except Exception as e:
         logger.error(f"Error preparing features: {e}")
@@ -596,20 +614,14 @@ def predict_batch():
 def predict_sample():
     """Make prediction using sample data."""
     try:
-        # Create sample sensor data
+        # Create sample sensor data (using feature names expected by the model)
         sample_data = {
-            "Temperature[C]": 25.5,
-            "Humidity[%]": 45.0,
-            "TVOC[ppb]": 150.0,
-            "eCO2[ppm]": 400.0,
-            "Raw H2": 13000.0,
-            "Raw Ethanol": 18500.0,
-            "Pressure[hPa]": 1013.25,
-            "PM1.0": 10.0,
-            "PM2.5": 15.0,
-            "NC0.5": 100.0,
-            "NC1.0": 80.0,
-            "NC2.5": 20.0,
+            "Temperature": 25.5,
+            "Humidity": 45.0,
+            "TVOC": 150.0,
+            "eCO2": 400.0,
+            "Smoke": 0.1,
+            "Pressure": 1013.25,
         }
 
         # Make prediction
@@ -662,20 +674,14 @@ def predict_sample():
 def predict_fire_scenario():
     """Make prediction using fire scenario data."""
     try:
-        # Create fire scenario data (high temperature, smoke particles, etc.)
+        # Create fire scenario data (using feature names expected by the model)
         fire_scenario_data = {
-            "Temperature[C]": 85.0,  # High temperature
-            "Humidity[%]": 20.0,  # Low humidity (dry conditions)
-            "TVOC[ppb]": 2500.0,  # High volatile organic compounds
-            "eCO2[ppm]": 1200.0,  # High CO2
-            "Raw H2": 25000.0,  # High hydrogen (combustion)
-            "Raw Ethanol": 35000.0,  # High ethanol (combustion)
-            "Pressure[hPa]": 1010.0,  # Slightly low pressure
-            "PM1.0": 150.0,  # High particulate matter
-            "PM2.5": 250.0,  # Very high fine particles
-            "NC0.5": 2000.0,  # High particle count
-            "NC1.0": 1500.0,  # High particle count
-            "NC2.5": 800.0,  # High particle count
+            "Temperature": 85.0,  # High temperature
+            "Humidity": 20.0,  # Low humidity (dry conditions)
+            "TVOC": 2500.0,  # High volatile organic compounds
+            "eCO2": 1200.0,  # High CO2
+            "Smoke": 0.8,  # High smoke concentration
+            "Pressure": 1010.0,  # Slightly low pressure
         }
 
         # Make prediction

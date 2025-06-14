@@ -1,0 +1,115 @@
+# 🔥 IoT Smoke Detection Data Pipeline - Docker Requirements
+# Optimized for Docker builds to avoid compilation issues
+# Install with: pip install -r requirements_docker.txt
+
+# ================================
+# CORE DEPENDENCIES (Docker optimized)
+# ================================
+
+# Data Science & Machine Learning
+numpy>=1.21.0,<1.25.0
+pandas>=1.5.0,<2.1.0
+scikit-learn>=1.1.0,<1.4.0
+scipy>=1.9.0,<1.11.0
+joblib>=1.2.0
+
+# Web Framework & API (Compatible versions)
+flask>=2.2.0,<2.3.0
+flask-cors>=3.0.10
+werkzeug>=2.2.0,<2.4.0
+gunicorn>=20.1.0
+requests>=2.28.0
+
+# Streaming & Messaging (Fixed versions)
+kafka-python>=2.0.2
+pyspark>=3.4.0,<3.6.0
+py4j==0.10.9.7
+
+# Database & ORM
+sqlalchemy>=1.4.0,<2.0.0
+psycopg2-binary>=2.9.0
+alembic>=1.8.0
+
+# Configuration & Environment
+python-dotenv>=0.19.0
+pyyaml>=6.0
+python-dateutil>=2.8.0
+watchdog>=2.1.0
+pydantic>=1.10.0,<3.0.0
+configparser>=5.0.0
+
+# Monitoring & Metrics
+prometheus-client>=0.15.0
+structlog>=22.0.0
+loguru>=0.6.0
+
+# Utilities & Performance
+pyarrow>=10.0.0
+psutil>=5.8.0
+memory-profiler>=0.60.0
+click>=8.0.0
+pytz>=2022.1
+packaging>=21.0
+
+# Data Validation
+marshmallow>=3.18.0
+cerberus>=1.3.0
+jsonschema>=4.0.0
+
+# Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# ================================
+# TESTING DEPENDENCIES (Optional)
+# ================================
+
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-xdist>=3.0.0
+pytest-mock>=3.8.0
+pytest-html>=3.1.0
+pytest-timeout>=2.1.0
+
+responses>=0.20.0
+factory-boy>=3.2.0
+freezegun>=1.2.0
+faker>=15.0.0
+
+pytest-benchmark>=4.0.0
+pytest-randomly>=3.10.0
+
+# Code Quality
+flake8>=6.0.0
+black>=22.0.0
+isort>=5.10.0
+mypy>=1.0.0
+
+coverage[toml]>=7.0.0
+
+# ================================
+# DEVELOPMENT DEPENDENCIES
+# ================================
+
+ipython>=8.0.0
+rich>=12.0.0,<14.0.0
+tqdm>=4.60.0
+
+# ================================
+# PRODUCTION DEPENDENCIES
+# ================================
+
+cryptography>=40.0.0,<42.0.0
+redis>=4.5.0
+healthcheck>=1.3.0
+schedule>=1.2.0
+
+# ================================
+# NOTES
+# ================================
+# This file uses fixed versions to ensure reproducible builds
+# and avoid compilation issues in Docker containers.
+# 
+# The google-re2 dependency has been excluded as it requires
+# system-level dependencies that may not be available in all
+# Docker base images.

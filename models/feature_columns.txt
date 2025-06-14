@@ -1,0 +1,6 @@
+Temperature
+Humidity
+Smoke
+TVOC
+eCO2
+Pressure

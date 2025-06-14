@@ -1,16 +1,16 @@
-# 🔥 IoT Smoke Detection Data Pipeline - Unified Requirements
-# Install with: pip install -r requirements.txt
-# Python version: >=3.10
+# 🔥 IoT Smoke Detection Data Pipeline - Fixed Requirements
+# Install with: pip install -r requirements_fixed.txt
+# Python version: >=3.8,<3.12 (for Airflow compatibility)
 
 # ================================
 # CORE DEPENDENCIES
 # ================================
 
 # Data Science & Machine Learning
-numpy>=1.24.3
-pandas>=2.0.3
-scikit-learn>=1.3.2
-scipy>=1.10.1
+numpy>=1.24.3,<2.0
+pandas>=2.0.3,<3.0
+scikit-learn>=1.3.2,<2.0
+scipy>=1.10.1,<2.0
 joblib>=1.3.2
 
 # Web Framework & API (Airflow compatible versions)
@@ -26,7 +26,7 @@ pyspark>=3.4.1,<3.6.0
 py4j==0.10.9.7
 
 # Database & ORM
-sqlalchemy==1.4.48
+sqlalchemy>=1.4.48,<2.0
 psycopg2-binary>=2.9.7
 alembic>=1.12.0
 
@@ -35,7 +35,7 @@ python-dotenv>=1.0.0
 pyyaml>=6.0.1
 python-dateutil>=2.9.0
 watchdog>=4.0.0
-pydantic>=2.0.0
+pydantic>=2.0.0,<3.0
 configparser>=5.3.0
 
 # Monitoring & Metrics
@@ -61,13 +61,13 @@ matplotlib>=3.6.3
 seaborn>=0.12.2
 
 # ================================
-# AIRFLOW DEPENDENCIES
+# AIRFLOW DEPENDENCIES (Optional - install separately if needed)
 # ================================
 
-# Airflow Core (for workflow orchestration) - with compatible constraints
-apache-airflow>=2.7.0,<2.11.0
-apache-airflow-providers-postgres>=5.6.0
-apache-airflow-providers-http>=4.5.0
+# Uncomment these if you need Airflow (install in separate environment recommended)
+# apache-airflow==2.10.3
+# apache-airflow-providers-postgres==5.12.0
+# apache-airflow-providers-http==4.12.0
 
 # ================================
 # TESTING DEPENDENCIES
@@ -101,7 +101,7 @@ mypy>=1.5.0
 coverage[toml]>=7.2.0
 
 # ================================
-# DEVELOPMENT DEPENDENCIES (Optional)
+# DEVELOPMENT DEPENDENCIES
 # ================================
 
 # Development Tools
@@ -110,7 +110,7 @@ rich>=12,<14
 tqdm
 
 # ================================
-# PRODUCTION DEPENDENCIES (Optional)
+# PRODUCTION DEPENDENCIES
 # ================================
 
 # Security
@@ -122,6 +122,9 @@ redis>=4.6.0
 # Health Checks
 healthcheck>=1.3.3
 
+# Scheduling
+schedule==1.2.0
+
 # ================================
 # INSTALLATION NOTES
 # ================================
@@ -130,21 +133,7 @@ healthcheck>=1.3.3
 # pip install flask pandas scikit-learn kafka-python sqlalchemy prometheus-client
 
 # For development:
-# pip install -r requirements.txt
+# pip install -r requirements_fixed.txt
 
-# For testing only:
-# pip install pytest pytest-cov requests
-
-# For Airflow only:
-# pip install apache-airflow apache-airflow-providers-postgres
-schedule==1.2.0
-
-
-# Note: Airflow dependencies moved to requirements_airflow.txt to avoid compilation issues
-# This file contains only the core dependencies needed for ML, API, and stream processing
-
-# Optional dependencies (commented out to avoid conflicts)
-# apache-airflow==2.7.3  # Moved to requirements_airflow.txt
-# apache-airflow-providers-postgres==5.7.1  # Moved to requirements_airflow.txt
-# great_expectations==0.18.11  # Data validation - removed due to dependency conflicts
-# jupyter==1.0.0  # Notebook support - simplified to avoid dependency conflicts
+# For Airflow (separate environment recommended):
+# pip install apache-airflow==2.10.3 apache-airflow-providers-postgres==5.12.0

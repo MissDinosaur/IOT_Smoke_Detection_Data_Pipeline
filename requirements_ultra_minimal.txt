@@ -1,0 +1,25 @@
+# Ultra-minimal requirements to avoid ALL version conflicts
+# Install these first, then add packages individually
+
+# Core data science (most stable versions)
+numpy>=1.21.0,<1.24.0
+pandas>=1.5.0,<2.0.0
+scikit-learn>=1.1.0,<1.3.0
+
+# Web framework (Airflow compatible)
+flask>=2.2.0,<2.3.0
+requests>=2.25.0
+
+# Database
+sqlalchemy>=1.4.0,<2.0.0
+psycopg2-binary>=2.8.0
+
+# Messaging
+kafka-python>=2.0.0
+
+# Configuration
+python-dotenv>=0.19.0
+pyyaml>=5.4.0
+
+# Utilities
+click>=8.0.0

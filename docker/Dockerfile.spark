@@ -26,15 +26,19 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+# Install Python dependencies (use ultra-minimal)
+COPY requirements_ultra_minimal.txt /tmp/requirements_ultra_minimal.txt
+RUN pip install --no-cache-dir -r /tmp/requirements_ultra_minimal.txt
 
-# Install Airflow separately to avoid dependency conflicts
-RUN pip install --no-cache-dir \
-    apache-airflow==2.8.1 \
-    apache-airflow-providers-postgres==5.8.0 \
-    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-3.8.txt"
+# Install PySpark and py4j with exact versions to avoid conflicts
+RUN pip install --no-cache-dir py4j==0.10.9.7
+RUN pip install --no-cache-dir pyspark==3.5.0
+
+# Install Airflow separately to avoid dependency conflicts (skip for now to avoid conflicts)
+# RUN pip install --no-cache-dir \
+#     apache-airflow==2.8.1 \
+#     apache-airflow-providers-postgres==5.8.0 \
+#     --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-3.8.txt"
 
 # Install additional Spark packages for Kafka integration
 RUN wget -O /opt/spark/jars/spark-sql-kafka-0-10_2.12-3.4.0.jar \

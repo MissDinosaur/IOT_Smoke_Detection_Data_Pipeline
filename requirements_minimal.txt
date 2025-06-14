@@ -1,0 +1,63 @@
+# 🔥 IoT Smoke Detection Data Pipeline - Minimal Requirements
+# Essential packages only to avoid version conflicts
+# Install with: pip install -r requirements_minimal.txt
+
+# ================================
+# ESSENTIAL CORE DEPENDENCIES
+# ================================
+
+# Data Science & Machine Learning (Core)
+numpy>=1.21.0,<1.25.0
+pandas>=1.5.0,<2.1.0
+scikit-learn>=1.1.0,<1.4.0
+joblib>=1.2.0
+
+# Web Framework (Essential)
+flask>=2.2.0,<2.3.0
+flask-cors>=3.0.10
+requests>=2.28.0
+
+# Streaming & Messaging (Core)
+kafka-python>=2.0.2
+py4j==0.10.9.7
+
+# Database (Essential)
+sqlalchemy>=1.4.0,<2.0.0
+psycopg2-binary>=2.9.0
+
+# Configuration (Essential)
+python-dotenv>=0.19.0
+pyyaml>=6.0
+
+# Monitoring (Basic)
+prometheus-client>=0.15.0
+
+# Utilities (Essential)
+click>=8.0.0
+pytz>=2022.1
+
+# ================================
+# OPTIONAL DEPENDENCIES
+# ================================
+
+# Only install if needed:
+# pyspark>=3.4.0,<3.6.0  # For Spark processing
+# redis>=4.5.0           # For caching
+# matplotlib>=3.5.0      # For visualization
+# seaborn>=0.11.0        # For visualization
+# pytest>=7.0.0          # For testing
+
+# ================================
+# INSTALLATION NOTES
+# ================================
+
+# This minimal set avoids most version conflicts
+# Add additional packages as needed:
+# pip install pyspark==3.5.0 (after installing this file)
+# pip install redis matplotlib seaborn (for full functionality)
+
+# For development:
+# pip install pytest black flake8 mypy
+
+# For production:
+# pip install gunicorn cryptography

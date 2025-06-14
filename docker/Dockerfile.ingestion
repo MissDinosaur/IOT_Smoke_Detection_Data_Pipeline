@@ -4,10 +4,23 @@ FROM python:3.10
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install
-COPY requirements.txt .
+# Install system dependencies for potential compilation issues
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install -r requirements.txt
+# Copy requirements and install (use ultra-minimal to avoid conflicts)
+COPY requirements_ultra_minimal.txt .
+
+# Install ultra-minimal requirements first
+RUN pip install --no-cache-dir -r requirements_ultra_minimal.txt
+
+# Install additional packages needed for ingestion (one by one)
+RUN pip install --no-cache-dir schedule==1.2.0
+RUN pip install --no-cache-dir py4j==0.10.9.7
 
 RUN mkdir -p ./app/utils ./data_ingestion ./config ./data_processing/
 

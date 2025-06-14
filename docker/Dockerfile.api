@@ -7,19 +7,33 @@ FROM python:3.10-slim
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.api.prediction_api
-ENV FLASK_ENV=production
+ENV FLASK_DEBUG=false
 
 # Set working directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    gcc \
+    g++ \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt /app/requirements.txt
+# Copy requirements first for better caching (use ultra-minimal)
+COPY requirements_ultra_minimal.txt /app/requirements_ultra_minimal.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install ultra-minimal requirements first
+RUN pip install --no-cache-dir -r requirements_ultra_minimal.txt
+
+# Install additional packages needed for API (one by one to avoid conflicts)
+RUN pip install --no-cache-dir gunicorn==20.1.0
+RUN pip install --no-cache-dir werkzeug==2.2.3
+RUN pip install --no-cache-dir flask-cors==4.0.0
+RUN pip install --no-cache-dir marshmallow==3.20.0
+RUN pip install --no-cache-dir prometheus-client
+RUN pip install --no-cache-dir joblib>=1.2.0
 
 # Create necessary directories
 RUN mkdir -p /app/logs && mkdir -p /app/ml/models && mkdir -p /app/data
