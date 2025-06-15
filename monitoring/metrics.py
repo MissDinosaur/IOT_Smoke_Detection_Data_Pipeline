@@ -7,6 +7,12 @@ fire_alarm_counter = Counter(
     'Total number of fire alarms'
 )
 
+# Smoke detection reading
+smoke_detection_gauge = Gauge(
+    'smoke_detection_reading',
+    'Current smoke detection reading'
+)
+
 # Sensor readings
 temperature_gauge = Gauge(
     'temperature_celsius',
@@ -55,6 +61,10 @@ def start_metrics_server(port=8000):
 
 def update_sensor_metrics(data: dict):
     """Update all sensor metrics with new data"""
+    # Update smoke detection reading (using PM2.5 as a proxy for smoke)
+    smoke_detection_gauge.set(float(data.get('PM2.5', 0)))
+    
+    # Update other metrics
     temperature_gauge.set(float(data.get('Temperature[C]', 0)))
     humidity_gauge.set(float(data.get('Humidity[%]', 0)))
     tvoc_gauge.set(float(data.get('TVOC[ppb]', 0)))

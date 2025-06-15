@@ -31,7 +31,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana-dashboard.json:/etc/grafana/provisioning/dashboards/smoke-detection.json
+      - ./smoke_detection_dashboard.json:/etc/grafana/provisioning/dashboards/smoke-detection.json
       - grafana_data:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin

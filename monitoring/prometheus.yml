@@ -8,8 +8,10 @@ rule_files:
 scrape_configs:
   - job_name: 'smoke-detection-metrics'
     static_configs:
-      - targets: ['metrics_simulator:8000']
+      - targets: ['localhost:8000']
     metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 4s
 
   - job_name: 'flask-api-metrics'
     static_configs:

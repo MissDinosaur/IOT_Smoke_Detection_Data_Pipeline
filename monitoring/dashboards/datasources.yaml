@@ -8,7 +8,8 @@ datasources:
     isDefault: true
     editable: true
     version: 1
+    uid: prometheus
     jsonData:
-      timeInterval: "15s"
+      timeInterval: "5s"
       queryTimeout: "30s"
       httpMethod: "GET" 
